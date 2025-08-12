@@ -1,0 +1,108 @@
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Crown, Scroll, Sparkles, Shield } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function EditionSelector({ edition, onEditionChange }) {
+  const editions = [
+    {
+      id: "dnd5e",
+      name: "D&D 5.0",
+      description: "Sistema simplificado com foco em bônus de proficiência",
+      icon: Scroll,
+      features: ["Sub-raça e Subclasse", "Sistema simplificado", "18 habilidades", "Bônus de proficiência"],
+      color: "emerald"
+    },
+    {
+      id: "dnd35",
+      name: "D&D 3.5",
+      description: "Sistema complexo com cálculos detalhados",
+      icon: Crown,
+      features: ["Características físicas", "Sistema complexo", "Múltiplas habilidades", "BAB e cálculos detalhados"],
+      color: "amber"
+    }
+  ];
+
+  const getColorClasses = (color, isSelected) => {
+    const colors = {
+      emerald: {
+        border: isSelected ? "border-emerald-500" : "border-emerald-200",
+        bg: isSelected ? "bg-emerald-50" : "bg-emerald-25",
+        button: isSelected ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-700",
+        icon: "text-emerald-600",
+        accent: "text-emerald-700"
+      },
+      amber: {
+        border: isSelected ? "border-amber-500" : "border-amber-200",
+        bg: isSelected ? "bg-amber-50" : "bg-amber-25",
+        button: isSelected ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700",
+        icon: "text-amber-600",
+        accent: "text-amber-700"
+      }
+    };
+    return colors[color];
+  };
+
+  return (
+    <Card className="medieval-card">
+      <CardContent className="p-6">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold text-text-dark mb-2 flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5 text-medieval-gold" />
+            Escolha a Edição
+          </h3>
+          <p className="text-medieval-brown">
+            Selecione qual versão do D&D você deseja usar para criar seu personagem
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {editions.map((ed, index) => {
+            const isSelected = edition === ed.id;
+            const colors = getColorClasses(ed.color, isSelected);
+            const Icon = ed.icon;
+
+            return (
+              <motion.div
+                key={ed.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -2 }}
+                className={`border-2 rounded-xl p-6 transition-all duration-300 cursor-pointer ${colors.border} ${colors.bg}`}
+                onClick={() => onEditionChange(ed.id)}
+              >
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-medieval-gold to-light-gold rounded-full flex items-center justify-center shadow-lg">
+                    <Icon className={`w-8 h-8 ${colors.icon}`} />
+                  </div>
+                  <h4 className="text-xl font-bold text-text-dark mb-2">{ed.name}</h4>
+                  <p className="text-sm text-medieval-brown">{ed.description}</p>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  {ed.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Shield className={`w-4 h-4 ${colors.accent}`} />
+                      <span className="text-text-dark">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  className={`w-full rounded-lg transition-all duration-300 ${colors.button} ${
+                    isSelected ? 'shadow-lg' : 'hover:shadow-md'
+                  }`}
+                  variant={isSelected ? "default" : "outline"}
+                >
+                  {isSelected ? "Selecionado" : "Selecionar"}
+                </Button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,0 +1,299 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Crown, Swords, Target, Star, Book } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function BasicInfoForm({ character, onUpdate }) {
+  const races = [
+    "Humano", "Elfo", "Halfling", "Anão", "Meio-elfo", "Meio-orc", 
+    "Gnomo", "Tiefling", "Draconato", "Halfling Pés Peludos"
+  ];
+
+  const classes = [
+    "Barbaro", "Bardo", "Bruxo", "Clérigo", "Druida", "Feiticeiro",
+    "Guerreiro", "Ladino", "Mago", "Monge", "Paladino", "Ranger"
+  ];
+
+  const alignments = [
+    "Leal e Bom", "Neutro e Bom", "Caótico e Bom",
+    "Leal e Neutro", "Neutro", "Caótico e Neutro",
+    "Leal e Mau", "Neutro e Mau", "Caótico e Mau"
+  ];
+
+  const handleInputChange = (field, value) => {
+    onUpdate({ [field]: value });
+  };
+
+  const inputVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1 }
+    })
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      {/* Core Information */}
+      <Card className="border-medieval-gold">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg text-text-dark">
+            <User className="w-5 h-5 text-medieval-gold" />
+            Informações Essenciais
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <motion.div custom={0} variants={inputVariants} initial="hidden" animate="visible">
+            <Label htmlFor="name" className="text-medieval-brown font-medium">Nome do Personagem *</Label>
+            <Input
+              id="name"
+              value={character.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              placeholder="Ex: Aragorn, Legolas..."
+              className="mt-1 border-medieval-gold focus:ring-medieval-gold"
+            />
+          </motion.div>
+
+          <motion.div custom={1} variants={inputVariants} initial="hidden" animate="visible">
+            <Label htmlFor="player" className="text-medieval-brown font-medium">Nome do Jogador</Label>
+            <Input
+              id="player"
+              value={character.player}
+              onChange={(e) => handleInputChange("player", e.target.value)}
+              placeholder="Seu nome"
+              className="mt-1 border-medieval-gold focus:ring-medieval-gold"
+            />
+          </motion.div>
+        </CardContent>
+      </Card>
+
+      {/* Character Details */}
+      <Card className="border-medieval-gold">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg text-text-dark">
+            <Crown className="w-5 h-5 text-medieval-gold" />
+            Detalhes do Personagem
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div custom={2} variants={inputVariants} initial="hidden" animate="visible">
+            <Label className="text-medieval-brown font-medium flex items-center gap-1">
+              <Crown className="w-4 h-4" />
+              Raça *
+            </Label>
+            <Select value={character.race} onValueChange={(value) => handleInputChange("race", value)}>
+              <SelectTrigger className="mt-1 border-medieval-gold">
+                <SelectValue placeholder="Selecione a raça" />
+              </SelectTrigger>
+              <SelectContent>
+                {races.map(race => (
+                  <SelectItem key={race} value={race}>{race}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+
+          <motion.div custom={3} variants={inputVariants} initial="hidden" animate="visible">
+            <Label className="text-medieval-brown font-medium flex items-center gap-1">
+              <Swords className="w-4 h-4" />
+              Classe *
+            </Label>
+            <Select value={character.character_class} onValueChange={(value) => handleInputChange("character_class", value)}>
+              <SelectTrigger className="mt-1 border-medieval-gold">
+                <SelectValue placeholder="Selecione a classe" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map(cls => (
+                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+
+          <motion.div custom={4} variants={inputVariants} initial="hidden" animate="visible">
+            <Label className="text-medieval-brown font-medium flex items-center gap-1">
+              <Star className="w-4 h-4" />
+              Nível
+            </Label>
+            <Input
+              type="number"
+              min="1"
+              max="20"
+              value={character.level}
+              onChange={(e) => handleInputChange("level", parseInt(e.target.value) || 1)}
+              className="mt-1 border-medieval-gold focus:ring-medieval-gold"
+            />
+          </motion.div>
+
+          <motion.div custom={5} variants={inputVariants} initial="hidden" animate="visible" className="md:col-span-2 lg:col-span-1">
+            <Label className="text-medieval-brown font-medium flex items-center gap-1">
+              <Target className="w-4 h-4" />
+              Alinhamento
+            </Label>
+            <Select value={character.alignment} onValueChange={(value) => handleInputChange("alignment", value)}>
+              <SelectTrigger className="mt-1 border-medieval-gold">
+                <SelectValue placeholder="Selecione o alinhamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {alignments.map(alignment => (
+                  <SelectItem key={alignment} value={alignment}>{alignment}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+
+          <motion.div custom={6} variants={inputVariants} initial="hidden" animate="visible">
+            <Label className="text-medieval-brown font-medium">Experiência (XP)</Label>
+            <Input
+              type="number"
+              min="0"
+              value={character.experience}
+              onChange={(e) => handleInputChange("experience", parseInt(e.target.value) || 0)}
+              className="mt-1 border-medieval-gold focus:ring-medieval-gold"
+            />
+          </motion.div>
+        </CardContent>
+      </Card>
+
+      {/* Edition Specific Fields */}
+      {character.edition === "dnd5e" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-emerald-300 bg-emerald-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-emerald-800">
+                <Book className="w-5 h-5 text-emerald-600" />
+                Campos Específicos D&D 5.0
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-emerald-700 font-medium">Sub-raça</Label>
+                <Input
+                  value={character.subrace || ""}
+                  onChange={(e) => handleInputChange("subrace", e.target.value)}
+                  placeholder="Ex: Alto Elfo, Anão da Montanha..."
+                  className="mt-1 border-emerald-300 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-emerald-700 font-medium">Subclasse</Label>
+                <Input
+                  value={character.subclass || ""}
+                  onChange={(e) => handleInputChange("subclass", e.target.value)}
+                  placeholder="Ex: Campeão, Escola de Evocação..."
+                  className="mt-1 border-emerald-300 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-emerald-700 font-medium">Antecedente</Label>
+                <Input
+                  value={character.background || ""}
+                  onChange={(e) => handleInputChange("background", e.target.value)}
+                  placeholder="Ex: Acólito, Criminoso..."
+                  className="mt-1 border-emerald-300 focus:ring-emerald-500"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {character.edition === "dnd35" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-amber-300 bg-amber-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-amber-800">
+                <User className="w-5 h-5 text-amber-600" />
+                Características Físicas D&D 3.5
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div>
+                <Label className="text-amber-700 font-medium">Sexo</Label>
+                <Select value={character.gender || ""} onValueChange={(value) => handleInputChange("gender", value)}>
+                  <SelectTrigger className="mt-1 border-amber-300">
+                    <SelectValue placeholder="Sexo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Masculino">Masculino</SelectItem>
+                    <SelectItem value="Feminino">Feminino</SelectItem>
+                    <SelectItem value="Outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-amber-700 font-medium">Idade</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={character.age || ""}
+                  onChange={(e) => handleInputChange("age", parseInt(e.target.value) || "")}
+                  className="mt-1 border-amber-300 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-amber-700 font-medium">Altura</Label>
+                <Input
+                  value={character.height || ""}
+                  onChange={(e) => handleInputChange("height", e.target.value)}
+                  placeholder="Ex: 1,75m"
+                  className="mt-1 border-amber-300 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-amber-700 font-medium">Peso</Label>
+                <Input
+                  value={character.weight || ""}
+                  onChange={(e) => handleInputChange("weight", e.target.value)}
+                  placeholder="Ex: 70kg"
+                  className="mt-1 border-amber-300 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-amber-700 font-medium">Olhos</Label>
+                <Input
+                  value={character.eyes || ""}
+                  onChange={(e) => handleInputChange("eyes", e.target.value)}
+                  placeholder="Ex: Azuis"
+                  className="mt-1 border-amber-300 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-amber-700 font-medium">Cabelo</Label>
+                <Input
+                  value={character.hair || ""}
+                  onChange={(e) => handleInputChange("hair", e.target.value)}
+                  placeholder="Ex: Loiro"
+                  className="mt-1 border-amber-300 focus:ring-amber-500"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}

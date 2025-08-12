@@ -1,0 +1,195 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dice6, Shuffle, Copy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function RandomTableCard({ table, tableKey, onRoll, isRolling }) {
+  const copyTable = () => {
+    const tableText = `${table.name}\n${table.dice}\n\n` +
+      table.items.map(item => {
+        if (tableKey === "names") {
+          return `${item.range}: ${item.result}\n${item.examples.join(', ')}`;
+        } else if (tableKey === "encounters") {
+          return `${item.range}: Selvagem: ${item.wild} | Urbano: ${item.urban} | Dungeon: ${item.dungeon}`;
+        } else {
+          return `${item.range}: ${item.result}${item.description ? ` - ${item.description}` : ''}`;
+        }
+      }).join('\n\n');
+    
+    navigator.clipboard.writeText(tableText);
+  };
+
+  const getDiceIcon = () => {
+    const diceIcons = [Dice6, Dice6, Dice6, Dice6, Dice6, Dice6];
+    const DiceIcon = diceIcons[Math.floor(Math.random() * diceIcons.length)];
+    return <DiceIcon className={`w-5 h-5 ${isRolling ? 'animate-spin' : ''}`} />;
+  };
+
+  return (
+    <Card className="medieval-card">
+      <CardHeader className="bg-gradient-to-r from-medieval-gold to-light-gold border-b-2 border-medieval-brown">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl font-bold text-text-dark mb-2">
+              {table.name}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-medieval-brown text-parchment font-bold">
+                {table.dice}
+              </Badge>
+              {tableKey === "encounters" && (
+                <Badge className="bg-red-100 text-red-800">
+                  3 Ambientes
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={copyTable}
+              variant="outline"
+              size="sm"
+              className="border-medieval-gold hover:bg-light-gold"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={onRoll}
+              disabled={isRolling}
+              className="medieval-button rounded-lg px-6"
+            >
+              <AnimatePresence mode="wait">
+                {isRolling ? (
+                  <motion.div
+                    key="rolling"
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: 360 }}
+                    exit={{ rotate: 0 }}
+                    transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+                  >
+                    {getDiceIcon()}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="static"
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <Shuffle className="w-4 h-4" />
+                    Rolar {table.dice}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {table.items.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="border border-medieval-gold rounded-lg p-3 bg-gradient-to-r from-parchment to-light-gold hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start gap-3">
+                <Badge className="bg-medieval-brown text-parchment font-bold min-w-[3rem] text-center">
+                  {item.range}
+                </Badge>
+                <div className="flex-1">
+                  <div className="font-semibold text-text-dark mb-1">
+                    {tableKey === "names" ? item.result : 
+                     tableKey === "encounters" ? "Ambiente Variável" :
+                     item.result || item.trait || item.event}
+                  </div>
+                  
+                  {tableKey === "names" && (
+                    <div className="text-sm text-medieval-brown">
+                      <strong>Exemplos:</strong> {item.examples.join(', ')}
+                    </div>
+                  )}
+                  
+                  {tableKey === "encounters" && (
+                    <div className="text-sm space-y-1">
+                      <div><span className="font-medium text-green-700">Selvagem:</span> {item.wild}</div>
+                      <div><span className="font-medium text-blue-700">Urbano:</span> {item.urban}</div>
+                      <div><span className="font-medium text-purple-700">Dungeon:</span> {item.dungeon}</div>
+                    </div>
+                  )}
+                  
+                  {item.description && tableKey !== "names" && (
+                    <div className="text-sm text-medieval-brown mt-1">
+                      {item.description}
+                    </div>
+                  )}
+                  
+                  {item.features && (
+                    <div className="text-sm text-medieval-brown mt-1">
+                      <strong>Características:</strong> {item.features}
+                    </div>
+                  )}
+                  
+                  {item.effect && (
+                    <div className="text-sm text-medieval-brown mt-1">
+                      <strong>Efeito:</strong> {item.effect}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Special weather effects */}
+        {tableKey === "weather" && (
+          <div className="mt-6 p-4 bg-sky-50 border border-sky-300 rounded-lg">
+            <h4 className="font-semibold text-sky-800 mb-2">
+              🌤️ Efeitos do Clima na Aventura:
+            </h4>
+            <ul className="text-sm text-sky-700 space-y-1">
+              <li>• <strong>Movimento:</strong> Terreno difícil, velocidade reduzida</li>
+              <li>• <strong>Visibilidade:</strong> Alcance de ataques e magias afetado</li>
+              <li>• <strong>Moral:</strong> NPCs e animais podem reagir diferente</li>
+              <li>• <strong>Recursos:</strong> Consumo de comida/água alterado</li>
+              <li>• <strong>Rastros:</strong> Facilita ou dificulta seguir pistas</li>
+            </ul>
+          </div>
+        )}
+
+        {/* Special elements for ruins table */}
+        {tableKey === "ruins" && table.elements && (
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-300 rounded-lg">
+            <h4 className="font-semibold text-amber-800 mb-2">
+              💡 Adicione 1d4 elementos extras:
+            </h4>
+            <ul className="text-sm text-amber-700 space-y-1">
+              {table.elements.map((element, index) => (
+                <li key={index}>• {element}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Special secrets for personalities table */}
+        {tableKey === "personalities" && table.secrets && (
+          <div className="mt-6 p-4 bg-pink-50 border border-pink-300 rounded-lg">
+            <h4 className="font-semibold text-pink-800 mb-2">
+              🤫 Combine com um segredo (role 1d6):
+            </h4>
+            <ul className="text-sm text-pink-700 space-y-1">
+              {table.secrets.map((secret, index) => (
+                <li key={index}>{index + 1}. {secret}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

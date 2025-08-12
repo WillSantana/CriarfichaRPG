@@ -1,0 +1,269 @@
+import React, { useState, useEffect } from "react";
+import { Character } from "@/entities/Character";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { 
+  Plus, 
+  User, 
+  Swords, 
+  Shield, 
+  Crown,
+  Scroll,
+  Dice6,
+  Search,
+  Filter
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
+
+import CharacterCard from "../components/characters/CharacterCard";
+import EmptyState from "../components/characters/EmptyState";
+
+export default function CharactersPage() {
+  const [characters, setCharacters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editionFilter, setEditionFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState("all");
+
+  useEffect(() => {
+    loadCharacters();
+  }, []);
+
+  const loadCharacters = async () => {
+    try {
+      const data = await Character.list("-created_date");
+      setCharacters(data);
+    } catch (error) {
+      console.error("Erro ao carregar personagens:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredCharacters = characters.filter(character => {
+    const matchesSearch = character.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         character.race?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         character.character_class?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesEdition = editionFilter === "all" || character.edition === editionFilter;
+    const matchesClass = classFilter === "all" || character.character_class === classFilter;
+    
+    return matchesSearch && matchesEdition && matchesClass;
+  });
+
+  const uniqueClasses = [...new Set(characters.map(c => c.character_class).filter(Boolean))];
+
+  const getEditionBadge = (edition) => {
+    return edition === "dnd35" ? "D&D 3.5" : "D&D 5.0";
+  };
+
+  const getEditionColor = (edition) => {
+    return edition === "dnd35" ? "bg-amber-100 text-amber-800 border-amber-300" : "bg-emerald-100 text-emerald-800 border-emerald-300";
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="medieval-card animate-pulse">
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4"
+        >
+          <div>
+            <h1 className="text-4xl font-bold text-text-dark mb-2 tracking-tight">
+              Seus Personagens
+            </h1>
+            <p className="text-medieval-brown text-lg">
+              Gerencie suas fichas de personagem D&D
+            </p>
+          </div>
+          <Link to={createPageUrl("CreateCharacter")}>
+            <Button className="medieval-button rounded-xl px-6 py-3 text-lg shadow-lg">
+              <Plus className="w-5 h-5 mr-2" />
+              Novo Personagem
+            </Button>
+          </Link>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
+        >
+          <Card className="medieval-card border-l-4 border-l-medieval-gold">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-medieval-gold bg-opacity-20 rounded-lg">
+                  <User className="w-5 h-5 text-medieval-brown" />
+                </div>
+                <div>
+                  <p className="text-sm text-medieval-brown font-medium">Total</p>
+                  <p className="text-2xl font-bold text-text-dark">{characters.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="medieval-card border-l-4 border-l-emerald-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Scroll className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-medieval-brown font-medium">D&D 5.0</p>
+                  <p className="text-2xl font-bold text-text-dark">
+                    {characters.filter(c => c.edition === "dnd5e").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="medieval-card border-l-4 border-l-amber-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Crown className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-medieval-brown font-medium">D&D 3.5</p>
+                  <p className="text-2xl font-bold text-text-dark">
+                    {characters.filter(c => c.edition === "dnd35").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="medieval-card border-l-4 border-l-purple-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Dice6 className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-medieval-brown font-medium">Nível Médio</p>
+                  <p className="text-2xl font-bold text-text-dark">
+                    {characters.length > 0 
+                      ? Math.round(characters.reduce((sum, c) => sum + (c.level || 1), 0) / characters.length)
+                      : 0
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Filters */}
+        {characters.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="medieval-card p-6 mb-8"
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-medieval-brown w-4 h-4" />
+                  <Input
+                    placeholder="Buscar personagens..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-medieval-gold focus:ring-medieval-gold"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3">
+                <Select value={editionFilter} onValueChange={setEditionFilter}>
+                  <SelectTrigger className="w-32 border-medieval-gold">
+                    <SelectValue placeholder="Edição" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="dnd5e">D&D 5.0</SelectItem>
+                    <SelectItem value="dnd35">D&D 3.5</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="w-32 border-medieval-gold">
+                    <SelectValue placeholder="Classe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {uniqueClasses.map(cls => (
+                      <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Characters Grid */}
+        {filteredCharacters.length === 0 ? (
+          <EmptyState 
+            searchTerm={searchTerm}
+            hasCharacters={characters.length > 0}
+          />
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence>
+              {filteredCharacters.map((character, index) => (
+                <CharacterCard 
+                  key={character.id}
+                  character={character}
+                  index={index}
+                  onRefresh={loadCharacters}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,167 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { User, Shuffle, Crown, Eye, Heart, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function NPCGeneratorCard({ table, onRoll, isRolling }) {
+  const componentIcons = {
+    "Profissão": Crown,
+    "Aparência": Eye,
+    "Motivação": Heart,
+    "Segredo": Lock
+  };
+
+  const getComponentColor = (name) => {
+    const colors = {
+      "Profissão": "bg-blue-100 text-blue-800 border-blue-300",
+      "Aparência": "bg-green-100 text-green-800 border-green-300",
+      "Motivação": "bg-orange-100 text-orange-800 border-orange-300",
+      "Segredo": "bg-purple-100 text-purple-800 border-purple-300"
+    };
+    return colors[name] || "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  return (
+    <Card className="medieval-card">
+      <CardHeader className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-b-2 border-cyan-700">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl font-bold mb-2 flex items-center gap-2">
+              <User className="w-6 h-6" />
+              {table.name}
+            </CardTitle>
+            <p className="text-cyan-100">
+              Gere NPCs completos com personalidade, aparência e segredos
+            </p>
+            <Badge className="bg-white text-cyan-600 font-bold mt-2">
+              Sistema Multi-componente
+            </Badge>
+          </div>
+          <Button
+            onClick={onRoll}
+            disabled={isRolling}
+            className="bg-white text-cyan-600 hover:bg-cyan-50 font-bold px-8 py-3 rounded-xl shadow-lg"
+          >
+            <AnimatePresence mode="wait">
+              {isRolling ? (
+                <motion.div
+                  key="rolling"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: 360 }}
+                  exit={{ rotate: 0 }}
+                  transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+                  className="flex items-center gap-2"
+                >
+                  <Shuffle className="w-5 h-5" />
+                  Criando NPC...
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="static"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-2"
+                >
+                  <User className="w-5 h-5" />
+                  Gerar NPC
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        {/* Components Grid */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {table.components.map((component, index) => {
+            const Icon = componentIcons[component.name] || User;
+            return (
+              <motion.div
+                key={component.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`border-2 rounded-lg p-4 ${getComponentColor(component.name)}`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon className="w-5 h-5" />
+                  <h4 className="font-bold">{component.name}</h4>
+                  <Badge className="ml-auto bg-white bg-opacity-50 text-xs">
+                    {component.dice}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-1 text-sm max-h-32 overflow-y-auto">
+                  {component.items.slice(0, 6).map((item, itemIndex) => (
+                    <div key={itemIndex} className="flex items-center gap-2">
+                      <span className="font-mono text-xs w-6">{itemIndex + 1}.</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                  {component.items.length > 6 && (
+                    <div className="text-xs italic opacity-75">
+                      ... e mais {component.items.length - 6} opções
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Example NPC */}
+        <div className="bg-gradient-to-r from-light-gold to-parchment border-2 border-medieval-gold rounded-lg p-6">
+          <h4 className="font-bold text-medieval-brown mb-3 flex items-center gap-2">
+            👤 Exemplo de NPC Gerado
+          </h4>
+          <div className="grid md:grid-cols-2 gap-4 text-sm text-text-dark">
+            <div className="space-y-2">
+              <div><span className="font-semibold">Nome:</span> Thorgrim Martelo-de-Ferro</div>
+              <div><span className="font-semibold">Raça:</span> Anão</div>
+              <div><span className="font-semibold">Profissão:</span> Ferreiro</div>
+              <div><span className="font-semibold">Aparência:</span> Barba longa e trançada, mãos calejadas</div>
+            </div>
+            <div className="space-y-2">
+              <div><span className="font-semibold">Motivação:</span> Proteger a família</div>
+              <div><span className="font-semibold">Segredo:</span> Possui um artefato poderoso (martelo ancestral)</div>
+              <div><span className="font-semibold">Gancho:</span> Precisa de ajuda para proteger sua forja de bandidos</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Usage Tips */}
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+            <h5 className="font-semibold text-blue-800 mb-2">💼 Para Mestres</h5>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• NPCs instantâneos para improvisar</li>
+              <li>• Combine com locais para criar encontros</li>
+              <li>• Use segredos como ganchos de aventura</li>
+            </ul>
+          </div>
+          
+          <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+            <h5 className="font-semibold text-green-800 mb-2">🎭 Para Jogadores</h5>
+            <ul className="text-sm text-green-700 space-y-1">
+              <li>• Crie contatos e aliados</li>
+              <li>• Desenvolva background do PC</li>
+              <li>• NPCs para seguidores/lacaios</li>
+            </ul>
+          </div>
+          
+          <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+            <h5 className="font-semibold text-purple-800 mb-2">🌍 Worldbuilding</h5>
+            <ul className="text-sm text-purple-700 space-y-1">
+              <li>• Popule cidades rapidamente</li>
+              <li>• Crie hierarquias e organizações</li>
+              <li>• Desenvolva redes de relacionamento</li>
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

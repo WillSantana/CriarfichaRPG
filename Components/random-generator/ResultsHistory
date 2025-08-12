@@ -1,0 +1,219 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollText, Copy, Trash2, Clock, Scroll } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
+
+export default function ResultsHistory({ results, onClear, onCopy }) {
+  const copyResult = (result) => {
+    let text;
+    if (result.adventure) {
+      text = `🎲 ${result.table}\n\n` +
+             `Vilão: ${result.adventure.villain}\n` +
+             `Local: ${result.adventure.location}\n` +
+             `Objetivo: ${result.adventure.objective}\n` +
+             `Obstáculo: ${result.adventure.obstacle}\n` +
+             `Recompensa: ${result.adventure.treasure}\n\n` +
+             `Gerado em: ${format(result.timestamp, 'dd/MM/yyyy HH:mm')}`;
+    } else if (result.npc) {
+      text = `🎲 ${result.table}\n\n` +
+             `Nome: ${result.npc.nome}\n` +
+             `Raça: ${result.npc.raca}\n` +
+             `Profissão: ${result.npc.profissao}\n` +
+             `Aparência: ${result.npc.aparencia}\n` +
+             `Motivação: ${result.npc.motivacao}\n` +
+             `Segredo: ${result.npc.segredo}\n\n` +
+             `Gerado em: ${format(result.timestamp, 'dd/MM/yyyy HH:mm')}`;
+    } else if (result.campaign) {
+      text = `🎲 ${result.table}\n\n` +
+             `Tema: ${result.campaign.tema}\n` +
+             `Tom: ${result.campaign.tom}\n` +
+             `Vilão Principal: ${result.campaign.vilao_principal}\n` +
+             `Local Inicial: ${result.campaign.local_inicial}\n` +
+             `Local Final: ${result.campaign.local_final}\n` +
+             `Tesouro Lendário: ${result.campaign.tesouro_lendario}\n` +
+             `Plot Twist: ${result.campaign.plot_twist}\n\n` +
+             `Gerado em: ${format(result.timestamp, 'dd/MM/yyyy HH:mm')}`;
+    } else {
+      text = `🎲 ${result.table}\n` +
+             `Rolagem: ${result.roll}${result.range ? ` (${result.range})` : ''}\n` +
+             `Resultado: ${result.result}\n` +
+             (result.description ? `Descrição: ${result.description}\n` : '') +
+             `\nGerado em: ${format(result.timestamp, 'dd/MM/yyyy HH:mm')}`;
+    }
+    onCopy(text);
+  };
+
+  const copyAllResults = () => {
+    const allText = results.map((result, index) => {
+      let text = `=== RESULTADO ${index + 1} ===\n`;
+      if (result.adventure) {
+        text += `${result.table}\n\n` +
+               `Vilão: ${result.adventure.villain}\n` +
+               `Local: ${result.adventure.location}\n` +
+               `Objetivo: ${result.adventure.objective}\n` +
+               `Obstáculo: ${result.adventure.obstacle}\n` +
+               `Recompensa: ${result.adventure.treasure}`;
+      } else if (result.npc) {
+        text += `${result.table}\n\n` +
+               `Nome: ${result.npc.nome}\n` +
+               `Raça: ${result.npc.raca}\n` +
+               `Profissão: ${result.npc.profissao}\n` +
+               `Aparência: ${result.npc.aparencia}\n` +
+               `Motivação: ${result.npc.motivacao}\n` +
+               `Segredo: ${result.npc.segredo}`;
+      } else if (result.campaign) {
+        text += `${result.table}\n\n` +
+               `Tema: ${result.campaign.tema}\n` +
+               `Tom: ${result.campaign.tom}\n` +
+               `Vilão Principal: ${result.campaign.vilao_principal}\n` +
+               `Local Inicial: ${result.campaign.local_inicial}\n` +
+               `Local Final: ${result.campaign.local_final}\n` +
+               `Tesouro Lendário: ${result.campaign.tesouro_lendario}\n` +
+               `Plot Twist: ${result.campaign.plot_twist}`;
+      } else {
+        text += `${result.table}\n` +
+               `Rolagem: ${result.roll}${result.range ? ` (${result.range})` : ''}\n` +
+               `Resultado: ${result.result}` +
+               (result.description ? `\nDescrição: ${result.description}` : '');
+      }
+      text += `\nGerado em: ${format(result.timestamp, 'dd/MM/yyyy HH:mm')}\n`;
+      return text;
+    }).join('\n\n');
+    
+    onCopy(`🎲 HISTÓRICO DE ROLAGENS\n\n${allText}`);
+  };
+
+  return (
+    <Card className="medieval-card sticky top-6">
+      <CardHeader className="bg-gradient-to-r from-medieval-brown to-dark-brown text-parchment border-b-2 border-medieval-gold">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <ScrollText className="w-5 h-5" />
+            Histórico
+          </CardTitle>
+          <Badge className="bg-medieval-gold text-text-dark font-bold">
+            {results.length}/10
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4">
+        {results.length === 0 ? (
+          <div className="text-center py-8 text-medieval-brown">
+            <Scroll className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">
+              Nenhuma rolagem ainda.
+              <br />
+              Use os geradores acima!
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Action Buttons */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                onClick={copyAllResults}
+                variant="outline"
+                size="sm"
+                className="flex-1 border-medieval-gold hover:bg-light-gold text-xs"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copiar Tudo
+              </Button>
+              <Button
+                onClick={onClear}
+                variant="outline"
+                size="sm"
+                className="border-red-300 hover:bg-red-50 text-red-600 text-xs"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+
+            {/* Results List */}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              <AnimatePresence>
+                {results.map((result, index) => (
+                  <motion.div
+                    key={result.timestamp.getTime()}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="bg-gradient-to-r from-parchment to-light-gold border border-medieval-gold rounded-lg p-3 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold text-text-dark text-sm">
+                        {result.table}
+                      </h4>
+                      <Button
+                        onClick={() => copyResult(result)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-medieval-gold hover:text-text-dark"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+
+                    {result.adventure ? (
+                      <div className="space-y-1 text-xs text-medieval-brown">
+                        <div><strong>Vilão:</strong> {result.adventure.villain}</div>
+                        <div><strong>Local:</strong> {result.adventure.location}</div>
+                        <div><strong>Objetivo:</strong> {result.adventure.objective}</div>
+                        <div><strong>Obstáculo:</strong> {result.adventure.obstacle}</div>
+                        <div><strong>Recompensa:</strong> {result.adventure.treasure}</div>
+                      </div>
+                    ) : result.npc ? (
+                      <div className="space-y-1 text-xs text-medieval-brown">
+                        <div><strong>Nome:</strong> {result.npc.nome}</div>
+                        <div><strong>Raça:</strong> {result.npc.raca}</div>
+                        <div><strong>Profissão:</strong> {result.npc.profissao}</div>
+                        <div><strong>Aparência:</strong> {result.npc.aparencia}</div>
+                        <div><strong>Motivação:</strong> {result.npc.motivacao}</div>
+                        <div><strong>Segredo:</strong> {result.npc.segredo}</div>
+                      </div>
+                    ) : result.campaign ? (
+                      <div className="space-y-1 text-xs text-medieval-brown">
+                        <div><strong>Tema:</strong> {result.campaign.tema}</div>
+                        <div><strong>Tom:</strong> {result.campaign.tom}</div>
+                        <div><strong>Vilão:</strong> {result.campaign.vilao_principal}</div>
+                        <div><strong>Plot Twist:</strong> {result.campaign.plot_twist}</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {result.roll && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-medieval-brown text-parchment text-xs">
+                              {result.roll}{result.range && ` (${result.range})`}
+                            </Badge>
+                          </div>
+                        )}
+                        <div className="text-sm text-text-dark font-medium">
+                          {result.result}
+                        </div>
+                        {result.description && (
+                          <div className="text-xs text-medieval-brown">
+                            {result.description}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-1 mt-2 text-xs text-medieval-brown opacity-75">
+                      <Clock className="w-3 h-3" />
+                      <span>{format(result.timestamp, 'HH:mm')}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

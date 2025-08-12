@@ -1,0 +1,166 @@
+{
+  "name": "Character",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do personagem"
+    },
+    "player": {
+      "type": "string",
+      "description": "Nome do jogador"
+    },
+    "edition": {
+      "type": "string",
+      "enum": [
+        "dnd35",
+        "dnd5e"
+      ],
+      "default": "dnd5e",
+      "description": "Edição do D&D"
+    },
+    "race": {
+      "type": "string",
+      "description": "Raça do personagem"
+    },
+    "character_class": {
+      "type": "string",
+      "description": "Classe do personagem"
+    },
+    "level": {
+      "type": "number",
+      "default": 1,
+      "description": "Nível do personagem"
+    },
+    "alignment": {
+      "type": "string",
+      "description": "Alinhamento do personagem"
+    },
+    "experience": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos de experiência"
+    },
+    "subrace": {
+      "type": "string",
+      "description": "Sub-raça (D&D 5.0)"
+    },
+    "subclass": {
+      "type": "string",
+      "description": "Subclasse (D&D 5.0)"
+    },
+    "background": {
+      "type": "string",
+      "description": "Antecedente (D&D 5.0)"
+    },
+    "gender": {
+      "type": "string",
+      "description": "Sexo (D&D 3.5)"
+    },
+    "age": {
+      "type": "number",
+      "description": "Idade (D&D 3.5)"
+    },
+    "height": {
+      "type": "string",
+      "description": "Altura (D&D 3.5)"
+    },
+    "weight": {
+      "type": "string",
+      "description": "Peso (D&D 3.5)"
+    },
+    "eyes": {
+      "type": "string",
+      "description": "Cor dos olhos (D&D 3.5)"
+    },
+    "hair": {
+      "type": "string",
+      "description": "Cor do cabelo (D&D 3.5)"
+    },
+    "skin": {
+      "type": "string",
+      "description": "Cor da pele (D&D 3.5)"
+    },
+    "strength": {
+      "type": "number",
+      "default": 10,
+      "description": "Força"
+    },
+    "dexterity": {
+      "type": "number",
+      "default": 10,
+      "description": "Destreza"
+    },
+    "constitution": {
+      "type": "number",
+      "default": 10,
+      "description": "Constituição"
+    },
+    "intelligence": {
+      "type": "number",
+      "default": 10,
+      "description": "Inteligência"
+    },
+    "wisdom": {
+      "type": "number",
+      "default": 10,
+      "description": "Sabedoria"
+    },
+    "charisma": {
+      "type": "number",
+      "default": 10,
+      "description": "Carisma"
+    },
+    "armor_class": {
+      "type": "number",
+      "default": 10,
+      "description": "Classe de Armadura"
+    },
+    "hit_points_max": {
+      "type": "number",
+      "default": 8,
+      "description": "Pontos de Vida Máximos"
+    },
+    "hit_points_current": {
+      "type": "number",
+      "default": 8,
+      "description": "Pontos de Vida Atuais"
+    },
+    "hit_points_temp": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos de Vida Temporários"
+    },
+    "initiative": {
+      "type": "number",
+      "default": 0,
+      "description": "Iniciativa"
+    },
+    "speed": {
+      "type": "number",
+      "default": 30,
+      "description": "Velocidade"
+    },
+    "proficiency_bonus": {
+      "type": "number",
+      "default": 2,
+      "description": "Bônus de Proficiência (D&D 5.0)"
+    },
+    "base_attack_bonus": {
+      "type": "number",
+      "default": 0,
+      "description": "Bônus de Ataque Base (D&D 3.5)"
+    },
+    "skills": {
+      "type": "object",
+      "description": "Habilidades e perícias"
+    },
+    "saving_throws": {
+      "type": "object",
+      "description": "Testes de resistência"
+    },
+    "spells": {
+      "type": "array",
+      "description": "Lista de magias",
+      "items": {
+        "type": "object",

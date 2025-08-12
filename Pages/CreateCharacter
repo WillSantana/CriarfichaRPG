@@ -1,0 +1,247 @@
+import React, { useState, useEffect } from "react";
+import { Character } from "@/entities/Character";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { ArrowLeft, Save, Dice6 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
+
+import EditionSelector from "../components/character-form/EditionSelector";
+import BasicInfoForm from "../components/character-form/BasicInfoForm";
+import AttributesForm from "../components/character-form/AttributesForm";
+import CombatForm from "../components/character-form/CombatForm";
+import SkillsForm from "../components/character-form/SkillsForm";
+
+export default function CreateCharacterPage() {
+  const navigate = useNavigate();
+  const [character, setCharacter] = useState({
+    name: "",
+    player: "",
+    edition: "dnd5e",
+    race: "",
+    character_class: "",
+    level: 1,
+    alignment: "",
+    experience: 0,
+    strength: 10,
+    dexterity: 10,
+    constitution: 10,
+    intelligence: 10,
+    wisdom: 10,
+    charisma: 10,
+    armor_class: 10,
+    hit_points_max: 8,
+    hit_points_current: 8,
+    hit_points_temp: 0,
+    initiative: 0,
+    speed: 30,
+    proficiency_bonus: 2,
+    base_attack_bonus: 0,
+    skills: {},
+    saving_throws: {},
+    spells: [],
+    equipment: []
+  });
+  
+  const [activeTab, setActiveTab] = useState("basico");
+  const [saving, setSaving] = useState(false);
+
+  const updateCharacter = (field, value) => {
+    setCharacter(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const updateCharacterBulk = (updates) => {
+    setCharacter(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!character.name.trim()) {
+      alert("Por favor, informe o nome do personagem.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await Character.create(character);
+      navigate(createPageUrl("Characters"));
+    } catch (error) {
+      console.error("Erro ao salvar personagem:", error);
+      alert("Erro ao salvar personagem. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const canProceedToNext = () => {
+    return character.name.trim() && character.race && character.character_class;
+  };
+
+  return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(createPageUrl("Characters"))}
+              className="border-medieval-gold hover:bg-light-gold"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-text-dark tracking-tight">
+                Criar Novo Personagem
+              </h1>
+              <p className="text-medieval-brown">
+                Configure sua ficha de personagem D&D
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-medieval-brown">
+              <Dice6 className="w-4 h-4" />
+              <span className="font-medium">
+                {character.edition === "dnd35" ? "D&D 3.5" : "D&D 5.0"}
+              </span>
+            </div>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !character.name.trim()}
+              className="medieval-button rounded-xl px-6 py-2"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-text-dark border-t-transparent"></div>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar Personagem
+                </>
+              )}
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Edition Selector */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <EditionSelector
+            edition={character.edition}
+            onEditionChange={(edition) => updateCharacter("edition", edition)}
+          />
+        </motion.div>
+
+        {/* Main Form */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="medieval-card shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-medieval-gold to-light-gold border-b-2 border-medieval-brown">
+              <CardTitle className="text-xl font-bold text-text-dark flex items-center gap-2">
+                <Dice6 className="w-5 h-5" />
+                Ficha do Personagem
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-light-gold to-parchment border-b-2 border-medieval-gold">
+                  <TabsTrigger 
+                    value="basico" 
+                    className="data-[state=active]:bg-medieval-gold data-[state=active]:text-text-dark font-medium"
+                  >
+                    Básico
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="atributos"
+                    className="data-[state=active]:bg-medieval-gold data-[state=active]:text-text-dark font-medium"
+                  >
+                    Atributos
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="combate"
+                    className="data-[state=active]:bg-medieval-gold data-[state=active]:text-text-dark font-medium"
+                  >
+                    Combate
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="habilidades"
+                    className="data-[state=active]:bg-medieval-gold data-[state=active]:text-text-dark font-medium"
+                  >
+                    Habilidades
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="p-6">
+                  <TabsContent value="basico" className="mt-0">
+                    <BasicInfoForm
+                      character={character}
+                      onUpdate={updateCharacterBulk}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="atributos" className="mt-0">
+                    <AttributesForm
+                      character={character}
+                      onUpdate={updateCharacterBulk}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="combate" className="mt-0">
+                    <CombatForm
+                      character={character}
+                      onUpdate={updateCharacterBulk}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="habilidades" className="mt-0">
+                    <SkillsForm
+                      character={character}
+                      onUpdate={updateCharacterBulk}
+                    />
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Navigation Help */}
+        {activeTab === "basico" && !canProceedToNext() && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl"
+          >
+            <p className="text-amber-800 text-sm">
+              💡 <strong>Dica:</strong> Preencha as informações básicas (Nome, Raça e Classe) para habilitar as próximas abas.
+            </p>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

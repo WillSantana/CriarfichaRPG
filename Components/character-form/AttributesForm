@@ -1,0 +1,211 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Zap, Dice6, RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function AttributesForm({ character, onUpdate }) {
+  const attributes = [
+    { key: "strength", name: "Força", icon: "💪", description: "Poder físico e capacidade atlética" },
+    { key: "dexterity", name: "Destreza", icon: "🏹", description: "Agilidade, reflexos e equilíbrio" },
+    { key: "constitution", name: "Constituição", icon: "❤️", description: "Saúde, resistência e vitalidade" },
+    { key: "intelligence", name: "Inteligência", icon: "🧠", description: "Raciocínio, memória e conhecimento" },
+    { key: "wisdom", name: "Sabedoria", icon: "👁️", description: "Percepção, intuição e sensatez" },
+    { key: "charisma", name: "Carisma", icon: "✨", description: "Força de personalidade e liderança" }
+  ];
+
+  const getModifier = (score) => {
+    const mod = Math.floor((score - 10) / 2);
+    return mod >= 0 ? `+${mod}` : `${mod}`;
+  };
+
+  const rollRandomStats = () => {
+    const rollStat = () => {
+      // Simula 4d6, descarta o menor
+      const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
+      rolls.sort((a, b) => b - a);
+      return rolls.slice(0, 3).reduce((sum, roll) => sum + roll, 0);
+    };
+
+    const newStats = {};
+    attributes.forEach(attr => {
+      newStats[attr.key] = rollStat();
+    });
+
+    onUpdate(newStats);
+  };
+
+  const setStandardArray = () => {
+    const standardArray = [15, 14, 13, 12, 10, 8];
+    const newStats = {};
+    attributes.forEach((attr, index) => {
+      newStats[attr.key] = standardArray[index] || 10;
+    });
+    onUpdate(newStats);
+  };
+
+  const resetToBaseline = () => {
+    const newStats = {};
+    attributes.forEach(attr => {
+      newStats[attr.key] = 10;
+    });
+    onUpdate(newStats);
+  };
+
+  const handleAttributeChange = (attribute, value) => {
+    const numValue = parseInt(value) || 0;
+    const clampedValue = Math.min(Math.max(numValue, 3), 20);
+    onUpdate({ [attribute]: clampedValue });
+  };
+
+  const getTotalPointsUsed = () => {
+    // Cálculo baseado no sistema de pontos do D&D (point buy)
+    return attributes.reduce((total, attr) => {
+      const score = character[attr.key] || 10;
+      if (score <= 13) return total + Math.max(0, score - 8);
+      if (score === 14) return total + 7;
+      if (score === 15) return total + 9;
+      return total + 9 + (score - 15) * 2;
+    }, 0);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      {/* Header with Quick Actions */}
+      <Card className="border-medieval-gold">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2 text-lg text-text-dark">
+              <Zap className="w-5 h-5 text-medieval-gold" />
+              Atributos do Personagem
+            </CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={rollRandomStats}
+                variant="outline"
+                size="sm"
+                className="border-medieval-gold hover:bg-light-gold text-xs"
+              >
+                <Dice6 className="w-4 h-4 mr-1" />
+                Rolar 4d6
+              </Button>
+              <Button 
+                onClick={setStandardArray}
+                variant="outline"
+                size="sm"
+                className="border-medieval-gold hover:bg-light-gold text-xs"
+              >
+                Array Padrão
+              </Button>
+              <Button 
+                onClick={resetToBaseline}
+                variant="outline"
+                size="sm"
+                className="border-medieval-gold hover:bg-light-gold text-xs"
+              >
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Resetar (10)
+              </Button>
+            </div>
+          </div>
+          
+          {character.edition === "dnd5e" && (
+            <div className="text-sm text-medieval-brown">
+              💡 Array Padrão: 15, 14, 13, 12, 10, 8 | Pontos Gastos: {getTotalPointsUsed()}/27
+            </div>
+          )}
+        </CardHeader>
+      </Card>
+
+      {/* Attributes Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {attributes.map((attr, index) => (
+          <motion.div
+            key={attr.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ y: -2 }}
+          >
+            <Card className="medieval-card h-full hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">{attr.icon}</div>
+                  <h3 className="font-bold text-lg text-text-dark mb-1">
+                    {attr.name}
+                  </h3>
+                  <p className="text-xs text-medieval-brown mb-4 leading-relaxed">
+                    {attr.description}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-medieval-brown font-medium text-sm">Valor</Label>
+                      <Input
+                        type="number"
+                        min="3"
+                        max="20"
+                        value={character[attr.key] || 10}
+                        onChange={(e) => handleAttributeChange(attr.key, e.target.value)}
+                        className="text-center text-lg font-bold border-medieval-gold focus:ring-medieval-gold mt-1"
+                      />
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-medieval-gold to-light-gold rounded-lg p-3 border border-medieval-brown">
+                      <div className="text-xs text-medieval-brown font-medium mb-1">Modificador</div>
+                      <div className="text-2xl font-bold text-text-dark">
+                        {getModifier(character[attr.key] || 10)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Attribute Summary */}
+      <Card className="border-medieval-gold bg-gradient-to-r from-light-gold to-parchment">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-text-dark mb-3 flex items-center gap-2">
+            <Zap className="w-4 h-4 text-medieval-gold" />
+            Resumo dos Atributos
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
+            {attributes.map(attr => (
+              <div key={attr.key} className="text-center">
+                <div className="font-medium text-medieval-brown">
+                  {attr.name.slice(0, 3).toUpperCase()}
+                </div>
+                <div className="font-bold text-text-dark">
+                  {character[attr.key] || 10} ({getModifier(character[attr.key] || 10)})
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tips */}
+      <Card className="border-amber-300 bg-amber-50">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-amber-800 mb-2">💡 Dicas para Distribuição de Atributos</h4>
+          <div className="text-sm text-amber-700 space-y-1">
+            <p>• <strong>Guerreiros/Paladinos:</strong> Priorize Força ou Destreza</p>
+            <p>• <strong>Magos/Feiticeiros:</strong> Foque em Inteligência ou Carisma</p>
+            <p>• <strong>Clérigos/Druidas:</strong> Sabedoria é fundamental</p>
+            <p>• <strong>Ladinos/Rangers:</strong> Destreza é sua principal habilidade</p>
+            <p>• <strong>Constituição:</strong> Importante para todos (mais HP e resistência)</p>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

@@ -1,0 +1,205 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Scroll, Shuffle, Zap, Target, Shield, Gem, MapPin } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function QuickAdventureGenerator({ onRoll, isRolling }) {
+  const components = [
+    {
+      name: "Vilão",
+      dice: "d10",
+      icon: Shield,
+      color: "red",
+      options: [
+        "Druida Louco", "Bando de Orcs", "Mago Necromante", "Demônio Selado", "Culto Sombrio",
+        "Rei Tirano", "Dragão Adormecido", "Golem Descontrolado", "Fera Amaldiçoada", "Assassino Fantasma"
+      ]
+    },
+    {
+      name: "Local",
+      dice: "d20",
+      icon: MapPin,
+      color: "green",
+      note: "Usa tabela de Locais Aleatórios"
+    },
+    {
+      name: "Objetivo",
+      dice: "d10",
+      icon: Target,
+      color: "blue",
+      options: [
+        "Salvar reféns", "Encontrar tesouro", "Destruir artefato", "Obter informação", "Punir traidor",
+        "Proteger lugar", "Acumular poder", "Fugir de prisão", "Consertar erro mágico", "Abrir portal"
+      ]
+    },
+    {
+      name: "Obstáculo",
+      dice: "d10",
+      icon: Zap,
+      color: "orange",
+      options: [
+        "Armadilhas", "Monstros", "Enigmas", "Tempo limitado", "Traição", "Magia caótica",
+        "Clima severo", "Espíritos vingativos", "Política complicada", "Doença mágica"
+      ]
+    },
+    {
+      name: "Recompensa",
+      dice: "d12",
+      icon: Gem,
+      color: "purple",
+      note: "Usa tabela de Tesouros Aleatórios"
+    }
+  ];
+
+  const getColorClasses = (color) => {
+    const colors = {
+      red: "bg-red-100 text-red-800 border-red-300",
+      green: "bg-green-100 text-green-800 border-green-300",
+      blue: "bg-blue-100 text-blue-800 border-blue-300",
+      orange: "bg-orange-100 text-orange-800 border-orange-300",
+      purple: "bg-purple-100 text-purple-800 border-purple-300"
+    };
+    return colors[color] || colors.blue;
+  };
+
+  return (
+    <Card className="medieval-card">
+      <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-b-2 border-indigo-700">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl font-bold mb-2 flex items-center gap-2">
+              <Scroll className="w-6 h-6" />
+              Gerador de Aventura Rápida
+            </CardTitle>
+            <p className="text-indigo-100">
+              Role 5 dados e obtenha uma aventura completa em segundos!
+            </p>
+            <Badge className="bg-white text-indigo-600 font-bold mt-2">
+              Sistema "One-Roll Adventure"
+            </Badge>
+          </div>
+          <Button
+            onClick={onRoll}
+            disabled={isRolling}
+            className="bg-white text-indigo-600 hover:bg-indigo-50 font-bold px-8 py-3 rounded-xl shadow-lg"
+          >
+            <AnimatePresence mode="wait">
+              {isRolling ? (
+                <motion.div
+                  key="rolling"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: 360 }}
+                  exit={{ rotate: 0 }}
+                  transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+                  className="flex items-center gap-2"
+                >
+                  <Shuffle className="w-5 h-5" />
+                  Gerando...
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="static"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-2"
+                >
+                  <Zap className="w-5 h-5" />
+                  Gerar Aventura
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        {/* Components Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {components.map((component, index) => {
+            const Icon = component.icon;
+            return (
+              <motion.div
+                key={component.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`border-2 rounded-lg p-4 ${getColorClasses(component.color)}`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon className="w-5 h-5" />
+                  <h4 className="font-bold">{component.name}</h4>
+                  <Badge className="ml-auto bg-white bg-opacity-50 text-xs">
+                    {component.dice}
+                  </Badge>
+                </div>
+                
+                {component.options ? (
+                  <div className="space-y-1 text-sm max-h-32 overflow-y-auto">
+                    {component.options.map((option, optIndex) => (
+                      <div key={optIndex} className="flex items-center gap-2">
+                        <span className="font-mono text-xs w-6">{optIndex + 1}.</span>
+                        <span>{option}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm italic">
+                    {component.note}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Example Adventure */}
+        <div className="bg-gradient-to-r from-light-gold to-parchment border-2 border-medieval-gold rounded-lg p-6">
+          <h4 className="font-bold text-medieval-brown mb-3 flex items-center gap-2">
+            📜 Exemplo de Aventura Gerada
+          </h4>
+          <div className="space-y-2 text-sm text-text-dark">
+            <div><span className="font-semibold">Vilão:</span> Culto Sombrio (5)</div>
+            <div><span className="font-semibold">Local:</span> Mosteiro nas montanhas nevadas (3)</div>
+            <div><span className="font-semibold">Objetivo:</span> Destruir artefato (3)</div>
+            <div><span className="font-semibold">Obstáculo:</span> Armadilhas (1)</div>
+            <div><span className="font-semibold">Recompensa:</span> Arma +1 (3)</div>
+          </div>
+          <div className="mt-4 p-3 bg-white bg-opacity-50 rounded-lg">
+            <p className="text-sm text-medieval-brown italic">
+              <strong>Aventura:</strong> Um culto sombrio ocupou um antigo mosteiro nas montanhas nevadas 
+              e está usando um artefato amaldiçoado para corromper as almas dos monges. Os personagens 
+              devem infiltrar-se no mosteiro, desativar as armadilhas deixadas pelos cultistas e 
+              destruir o artefato antes que o mal se espalhe. Como recompensa, encontrarão uma 
+              espada encantada abandonada pelos monges em sua fuga.
+            </p>
+          </div>
+        </div>
+
+        {/* Usage Tips */}
+        <div className="mt-6 grid md:grid-cols-2 gap-4">
+          <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4">
+            <h5 className="font-semibold text-emerald-800 mb-2">💡 Dicas de Uso</h5>
+            <ul className="text-sm text-emerald-700 space-y-1">
+              <li>• Use para sessões improvisadas</li>
+              <li>• Combine com tabelas de NPCs</li>
+              <li>• Adicione detalhes conforme necessário</li>
+              <li>• Adapte para qualquer sistema de RPG</li>
+            </ul>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+            <h5 className="font-semibold text-blue-800 mb-2">🎯 Variações</h5>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Role duas vezes para campanhas</li>
+              <li>• Use para arcos secundários</li>
+              <li>• Misture com eventos aleatórios</li>
+              <li>• Crie sequências de aventuras</li>
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

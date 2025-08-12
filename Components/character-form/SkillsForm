@@ -1,0 +1,288 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Book, Star, Search, Filter, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion } from "framer-motion";
+
+export default function SkillsForm({ character, onUpdate }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [attributeFilter, setAttributeFilter] = useState("all");
+
+  const getModifier = (score) => {
+    const mod = Math.floor((score - 10) / 2);
+    return mod >= 0 ? `+${mod}` : `${mod}`;
+  };
+
+  const dnd5eSkills = [
+    { name: "Acrobacia", attribute: "dexterity", description: "Equilibrio e manobras acrobáticas" },
+    { name: "Arcanismo", attribute: "intelligence", description: "Conhecimento sobre magia" },
+    { name: "Atletismo", attribute: "strength", description: "Escalada, natação, saltos" },
+    { name: "Atuação", attribute: "charisma", description: "Entreter uma audiência" },
+    { name: "Blefe", attribute: "charisma", description: "Enganar e mentir convincentemente" },
+    { name: "Furtividade", attribute: "dexterity", description: "Mover-se sem ser detectado" },
+    { name: "História", attribute: "intelligence", description: "Conhecimento histórico" },
+    { name: "Insight", attribute: "wisdom", description: "Ler intenções e emoções" },
+    { name: "Intimidação", attribute: "charisma", description: "Ameaçar e coagir" },
+    { name: "Investigação", attribute: "intelligence", description: "Procurar pistas e evidências" },
+    { name: "Lidar com Animais", attribute: "wisdom", description: "Interagir com animais" },
+    { name: "Medicina", attribute: "wisdom", description: "Primeiros socorros e diagnósticos" },
+    { name: "Natureza", attribute: "intelligence", description: "Conhecimento sobre natureza" },
+    { name: "Percepção", attribute: "wisdom", description: "Notar detalhes do ambiente" },
+    { name: "Persuasão", attribute: "charisma", description: "Convencer com argumentos" },
+    { name: "Prestidigitação", attribute: "dexterity", description: "Truques manuais e furtos" },
+    { name: "Religião", attribute: "intelligence", description: "Conhecimento religioso" },
+    { name: "Sobrevivência", attribute: "wisdom", description: "Rastrear e sobreviver na natureza" }
+  ];
+
+  const dnd35Skills = [
+    { name: "Abrir Fechaduras", attribute: "dexterity", description: "Destrancar portas e cofres" },
+    { name: "Acrobacia", attribute: "dexterity", description: "Manobras acrobáticas" },
+    { name: "Adestrar Animais", attribute: "charisma", description: "Treinar animais" },
+    { name: "Atletismo", attribute: "strength", description: "Atividades físicas" },
+    { name: "Blefe", attribute: "charisma", description: "Enganar e mentir" },
+    { name: "Cavalgar", attribute: "dexterity", description: "Montar e controlar montarias" },
+    { name: "Concentração", attribute: "constitution", description: "Manter foco em magias" },
+    { name: "Conhecimento", attribute: "intelligence", description: "Conhecimentos específicos" },
+    { name: "Diplomacia", attribute: "charisma", description: "Negociar e persuadir" },
+    { name: "Escapismo", attribute: "dexterity", description: "Escapar de amarras" },
+    { name: "Escutar", attribute: "wisdom", description: "Perceber sons" },
+    { name: "Falsificação", attribute: "intelligence", description: "Criar documentos falsos" },
+    { name: "Furtividade", attribute: "dexterity", description: "Mover-se em silêncio" },
+    { name: "Intimidar", attribute: "charisma", description: "Ameaçar e assustar" },
+    { name: "Observar", attribute: "wisdom", description: "Notar detalhes visuais" },
+    { name: "Ofícios", attribute: "intelligence", description: "Criar itens artesanais" },
+    { name: "Sobrevivência", attribute: "wisdom", description: "Sobreviver na natureza" },
+    { name: "Usar Cordas", attribute: "dexterity", description: "Amarrar e escalar com cordas" }
+  ];
+
+  const skills = character.edition === "dnd5e" ? dnd5eSkills : dnd35Skills;
+  const characterSkills = character.skills || {};
+
+  const filteredSkills = skills.filter(skill => {
+    const matchesSearch = skill.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesAttribute = attributeFilter === "all" || skill.attribute === attributeFilter;
+    return matchesSearch && matchesAttribute;
+  });
+
+  const updateSkill = (skillName, field, value) => {
+    const updatedSkills = {
+      ...characterSkills,
+      [skillName]: {
+        ...characterSkills[skillName],
+        [field]: value
+      }
+    };
+    onUpdate({ skills: updatedSkills });
+  };
+
+  const toggleProficiency = (skillName) => {
+    const skill = characterSkills[skillName] || {};
+    updateSkill(skillName, "proficient", !skill.proficient);
+  };
+
+  const getSkillBonus = (skill) => {
+    const skillData = characterSkills[skill.name] || {};
+    const attributeBonus = getModifier(character[skill.attribute] || 10);
+    const proficiencyBonus = skillData.proficient ? (character.proficiency_bonus || 2) : 0;
+    const miscBonus = skillData.misc_bonus || 0;
+    
+    const total = parseInt(attributeBonus) + proficiencyBonus + miscBonus;
+    return total >= 0 ? `+${total}` : `${total}`;
+  };
+
+  const getAttributeName = (attr) => {
+    const names = {
+      strength: "FOR",
+      dexterity: "DES", 
+      constitution: "CON",
+      intelligence: "INT",
+      wisdom: "SAB",
+      charisma: "CAR"
+    };
+    return names[attr] || attr;
+  };
+
+  const getAttributeColor = (attr) => {
+    const colors = {
+      strength: "bg-red-100 text-red-800",
+      dexterity: "bg-green-100 text-green-800",
+      constitution: "bg-orange-100 text-orange-800",
+      intelligence: "bg-blue-100 text-blue-800",
+      wisdom: "bg-purple-100 text-purple-800",
+      charisma: "bg-pink-100 text-pink-800"
+    };
+    return colors[attr] || "bg-gray-100 text-gray-800";
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      {/* Header */}
+      <Card className="border-medieval-gold">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg text-text-dark">
+            <Book className="w-5 h-5 text-medieval-gold" />
+            Habilidades e Perícias
+          </CardTitle>
+          <p className="text-sm text-medieval-brown">
+            {character.edition === "dnd5e" 
+              ? "Selecione as habilidades nas quais seu personagem é proficiente"
+              : "Configure os ranks e bônus das perícias do seu personagem"
+            }
+          </p>
+        </CardHeader>
+      </Card>
+
+      {/* Filters */}
+      <Card className="border-medieval-gold">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-medieval-brown w-4 h-4" />
+                <Input
+                  placeholder="Buscar habilidades..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-medieval-gold focus:ring-medieval-gold"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Select value={attributeFilter} onValueChange={setAttributeFilter}>
+                <SelectTrigger className="w-40 border-medieval-gold">
+                  <SelectValue placeholder="Atributo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="strength">Força</SelectItem>
+                  <SelectItem value="dexterity">Destreza</SelectItem>
+                  <SelectItem value="constitution">Constituição</SelectItem>
+                  <SelectItem value="intelligence">Inteligência</SelectItem>
+                  <SelectItem value="wisdom">Sabedoria</SelectItem>
+                  <SelectItem value="charisma">Carisma</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Skills List */}
+      <div className="grid gap-3">
+        {filteredSkills.map((skill, index) => {
+          const skillData = characterSkills[skill.name] || {};
+          const isProficient = skillData.proficient || false;
+
+          return (
+            <motion.div
+              key={skill.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card className={`medieval-card transition-all duration-300 ${isProficient ? 'bg-gradient-to-r from-medieval-gold to-light-gold border-medieval-brown' : 'hover:shadow-md'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      {/* Proficiency Checkbox */}
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={isProficient}
+                          onCheckedChange={() => toggleProficiency(skill.name)}
+                          className="border-medieval-brown data-[state=checked]:bg-medieval-brown data-[state=checked]:border-medieval-brown"
+                        />
+                        {isProficient && (
+                          <Star className="w-4 h-4 text-medieval-brown" />
+                        )}
+                      </div>
+
+                      {/* Skill Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className={`font-semibold ${isProficient ? 'text-text-dark' : 'text-medieval-brown'}`}>
+                            {skill.name}
+                          </h4>
+                          <Badge className={`text-xs ${getAttributeColor(skill.attribute)}`}>
+                            {getAttributeName(skill.attribute)}
+                          </Badge>
+                        </div>
+                        <p className={`text-sm ${isProficient ? 'text-medieval-brown opacity-80' : 'text-gray-600'}`}>
+                          {skill.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bonus Display */}
+                    <div className="text-right">
+                      <div className={`text-2xl font-bold ${isProficient ? 'text-text-dark' : 'text-medieval-brown'}`}>
+                        {getSkillBonus(skill)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {getModifier(character[skill.attribute] || 10)} + {isProficient ? (character.proficiency_bonus || 2) : 0}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {filteredSkills.length === 0 && (
+        <Card className="medieval-card">
+          <CardContent className="p-8 text-center">
+            <Filter className="w-12 h-12 mx-auto text-medieval-brown opacity-50 mb-4" />
+            <h3 className="text-lg font-medium text-text-dark mb-2">
+              Nenhuma habilidade encontrada
+            </h3>
+            <p className="text-medieval-brown">
+              Tente ajustar os filtros de busca
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Skills Summary */}
+      <Card className="border-medieval-gold bg-gradient-to-r from-light-gold to-parchment">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-text-dark mb-3 flex items-center gap-2">
+            <Zap className="w-4 h-4 text-medieval-gold" />
+            Resumo das Habilidades
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Total</div>
+              <div className="text-xl font-bold text-text-dark">{skills.length}</div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Proficientes</div>
+              <div className="text-xl font-bold text-text-dark">
+                {Object.values(characterSkills).filter(skill => skill.proficient).length}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Maior Bônus</div>
+              <div className="text-xl font-bold text-text-dark">
+                {skills.length > 0 ? Math.max(...skills.map(skill => parseInt(getSkillBonus(skill)) || 0)) : 0}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Bônus Prof.</div>
+              <div className="text-xl font-bold text-text-dark">+{character.proficiency_bonus || 2}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

@@ -1,0 +1,681 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Dice1, Dice2, Dice3, Dice4, Dice5, Dice6,
+  Shuffle, 
+  User, 
+  MapPin, 
+  Gem, 
+  Swords,
+  Castle,
+  Heart,
+  Zap,
+  Scroll,
+  Copy,
+  RefreshCw,
+  Sparkles,
+  Cloud,
+  Crown
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+import RandomTableCard from "../components/random-generator/RandomTableCard";
+import QuickAdventureGenerator from "../components/random-generator/QuickAdventureGenerator";
+import NPCGeneratorCard from "../components/random-generator/NPCGeneratorCard"; // Moved from inline definition
+import ResultsHistory from "../components/random-generator/ResultsHistory";
+
+
+export default function RandomGeneratorPage() {
+  const [activeCategory, setActiveCategory] = useState("names");
+  const [lastResults, setLastResults] = useState([]);
+  const [isRolling, setIsRolling] = useState(false);
+
+  const categories = [
+    { id: "names", name: "Nomes", icon: User, color: "blue" },
+    { id: "locations", name: "Locais", icon: MapPin, color: "green" },
+    { id: "treasures", name: "Tesouros", icon: Gem, color: "purple" },
+    { id: "encounters", name: "Encontros", icon: Swords, color: "red" },
+    { id: "ruins", name: "Ruínas", icon: Castle, color: "amber" },
+    { id: "personalities", name: "Personalidades", icon: Heart, color: "pink" },
+    { id: "events", name: "Eventos", icon: Zap, color: "orange" },
+    { id: "npcs", name: "NPCs", icon: User, color: "cyan" },
+    { id: "weather", name: "Clima", icon: Cloud, color: "gray" },
+    { id: "adventures", name: "Aventuras", icon: Scroll, color: "indigo" }
+  ];
+
+  const tables = {
+    names: {
+      name: "Nomes Aleatórios",
+      dice: "d100",
+      items: [
+        { range: "1-10", result: "Humanos Medievais", examples: ["Aldric", "Elira", "Borin", "Kaela", "Durn", "Mira", "Theron", "Sylva", "Roric", "Nessa"] },
+        { range: "11-20", result: "Anões", examples: ["Thorgrim", "Dagnara", "Brokk", "Hilda", "Grimdrak", "Mordrin", "Yurta", "Fargol", "Keldin", "Vora"] },
+        { range: "21-30", result: "Elfos", examples: ["Aelar", "Sylwen", "Liriel", "Faedrun", "Nymera", "Calanthor", "Elenya", "Thandor", "Vaelis", "Myraen"] },
+        { range: "31-40", result: "Orcs", examples: ["Ghorak", "Zarga", "Murg", "Krul", "Vash", "Drog", "Harka", "Tug", "Zul", "Grakk"] },
+        { range: "41-50", result: "Halflings", examples: ["Pip", "Marla", "Tilly", "Bim", "Orla", "Fret", "Nana", "Wex", "Lolly", "Dorn"] },
+        { range: "51-60", result: "Tieflings", examples: ["Zevran", "Mavros", "Lilitha", "Kaelum", "Nyx", "Vex", "Sorin", "Myra", "Draven", "Isolde"] },
+        { range: "61-70", result: "Gnomos", examples: ["Fizzwick", "Tillywig", "Zonk", "Pip", "Bimble", "Zara", "Quill", "Tink", "Wex", "Glim"] },
+        { range: "71-80", result: "Meio-Orcs", examples: ["Gorrak", "Marna", "Drak", "Syla", "Torvak", "Kira", "Harn", "Lura", "Vex", "Brak"] },
+        { range: "81-90", result: "Dracônicos", examples: ["Kaaluth", "Zyraxis", "Vormak", "Nhyssra", "Drothar", "Syrax", "Vaeloth", "Kryssa", "Zormun", "Nythar"] },
+        { range: "91-100", result: "Fantasia Exótica", examples: ["Xal'thun", "Veyra", "Korrin", "Zyn", "Mirel", "Tharok", "Lysa", "Drev", "Orlun", "Nyxra"] }
+      ]
+    },
+    locations: {
+      name: "Locais Aleatórios",
+      dice: "d20",
+      items: [
+        { range: "1", result: "Vila isolada cercada por pântanos", description: "Construções de madeira sobre palafitas, neblina constante" },
+        { range: "2", result: "Cidade mercantil em cruzamento de estradas", description: "Movimentada, caravanas, pousadas lotadas" },
+        { range: "3", result: "Mosteiro nas montanhas nevadas", description: "Paz, biblioteca antiga, monges estudiosos" },
+        { range: "4", result: "Ruínas antigas com estátuas quebradas", description: "Pedras cobertas de musgo, aura mística" },
+        { range: "5", result: "Aldeia de pescadores em ilha rochosa", description: "Casas simples, barcos coloridos, maresia" },
+        { range: "6", result: "Forte abandonado com túneis secretos", description: "Muralhas em ruínas, passagens ocultas" },
+        { range: "7", result: "Mercado flutuante em rio largo", description: "Barcos-loja, produtos exóticos, movimento" },
+        { range: "8", result: "Templo enterrado pela areia", description: "Parcialmente soterrado, hieróglifos antigos" },
+        { range: "9", result: "Floresta encantada com árvores sussurrantes", description: "Magia palpável, sons misteriosos, luz filtrada" },
+        { range: "10", result: "Cidade subterrânea iluminada por cogumelos", description: "Bioluminescência, arquitetura única, ecos" },
+        { range: "11", result: "Colônia penal em ilha maldita", description: "Isolamento, desesperança, guardas corruptos" },
+        { range: "12", result: "Cidade flutuante sustentada por magia", description: "Arquitetura impossível, vista panorâmica" },
+        { range: "13", result: "Aldeia construída em árvore gigante", description: "Casas nas copas, pontes de corda, harmonia natural" },
+        { range: "14", result: "Cemitério onde os mortos não descansam", description: "Lápides antigas, sussurros noturnos, neblina" },
+        { range: "15", result: "Minas esquecidas com máquinas antigas", description: "Engrenagens enferrujadas, ecos metálicos" },
+        { range: "16", result: "Torre de mago louco", description: "Arquitetura bizarra, experimentos perigosos" },
+        { range: "17", result: "Povoado nômade em caravanas", description: "Sempre em movimento, culturas diversas" },
+        { range: "18", result: "Lago com ilha central e portal subaquático", description: "Águas cristalinas, mistério aquático" },
+        { range: "19", result: "Cidade em ruínas dominada por cultistas", description: "Símbolos sombrios, rituais noturnos" },
+        { range: "20", result: "Combine dois locais anteriores!", description: "Role novamente duas vezes e misture os resultados" }
+      ]
+    },
+    treasures: {
+      name: "Tesouros Aleatórios",
+      dice: "d12",
+      items: [
+        { range: "1", result: "2d6 × 10 PO + objeto sentimental", description: "Anel com inscrição, medalhão familiar" },
+        { range: "2", result: "1d4 gemas (50 PO cada) + mapa rasgado", description: "Gemas variadas, mapa de local misterioso" },
+        { range: "3", result: "Arma +1 (ou equivalente mágico)", description: "Brilha levemente, corte mais afiado" },
+        { range: "4", result: "Armadura leve encantada (+1 CA)", description: "Mais leve que o normal, proteção extra" },
+        { range: "5", result: "Poção de cura (ou 2d4 poções menores)", description: "Líquido vermelho cintilante" },
+        { range: "6", result: "Item mágico menor", description: "Anel de saltos, capa da sombra, bota élfica" },
+        { range: "7", result: "Livro com feitiço raro", description: "Conhecimento arcano ou divino poderoso" },
+        { range: "8", result: "Jóia amaldiçoada", description: "Bela mas atrai espíritos e desgraças" },
+        { range: "9", result: "Baú com moedas antigas", description: "Metade é falsa, mas tem valor histórico" },
+        { range: "10", result: "Tesouro escondido: 3d10 × 100 PO", description: "Moedas de ouro + estátua valiosa" },
+        { range: "11", result: "Item de classe específica", description: "Amuleto de resistência, fetiche xamânico" },
+        { range: "12", result: "Artefato lendário menor", description: "Espada que fala, chave de portal dimensional" }
+      ]
+    },
+    encounters: {
+      name: "Encontros Aleatórios",
+      dice: "d10",
+      environments: ["Selvagem", "Urbano", "Dungeon"],
+      items: [
+        { range: "1", wild: "Animal selvagem (lobo, urso)", urban: "Guarda exigindo suborno", dungeon: "Rato gigante" },
+        { range: "2", wild: "Druida solitário", urban: "Ladrão tentando roubar", dungeon: "Esqueleto ambulante" },
+        { range: "3", wild: "Criança perdida", urban: "Informante com segredo", dungeon: "Fungo venenoso" },
+        { range: "4", wild: "Bando de goblins", urban: "Guarda corrupto", dungeon: "Aranha gigante" },
+        { range: "5", wild: "Espírito da natureza", urban: "Nobre em perigo", dungeon: "Gólem de pedra" },
+        { range: "6", wild: "Caçador de recompensas", urban: "Mercador ilegal", dungeon: "Cultista em ritual" },
+        { range: "7", wild: "Árvore viva (treant jovem)", urban: "Assassino à procura", dungeon: "Ilusão que causa medo" },
+        { range: "8", wild: "Besta mágica (unicórnio)", urban: "Mendigo que sabe demais", dungeon: "Trilha de sangue fresco" },
+        { range: "9", wild: "Ruína com portal ativo", urban: "Guarda com ordens falsas", dungeon: "Sala cheia de ovos" },
+        { range: "10", wild: "Evento mágico", urban: "Revolta popular", dungeon: "Armadilha complexa ativa" }
+      ]
+    },
+    ruins: {
+      name: "Ruínas e Dungeons",
+      dice: "d8",
+      items: [
+        { range: "1", result: "Templo caído dedicado a deus esquecido", features: "Altar profanado, símbolos apagados" },
+        { range: "2", result: "Catacumbas com túmulos abertos", features: "Ossadas espalhadas, ecos fantasmagóricos" },
+        { range: "3", result: "Laboratório de mago com experimentos", features: "Frascos borbulhantes, criaturas em fuga" },
+        { range: "4", result: "Fortaleza de cavaleiros amaldiçoados", features: "Armaduras vazias, espadas cravadas" },
+        { range: "5", result: "Prisão subterrânea com portas quebradas", features: "Celas abertas, correntes enferrujadas" },
+        { range: "6", result: "Cidade subterrânea de duergar", features: "Forjas apagadas, máquinas paradas" },
+        { range: "7", result: "Torre de observação com portal ativo", features: "Vista panorâmica, energia crepitante" },
+        { range: "8", result: "Minas com máquinas automáticas", features: "Engrenagens funcionando sozinhas" }
+      ],
+      elements: [
+        "Escrituras antigas em língua perdida",
+        "Sala com ilusão de saída (armadilha)",
+        "Tesouro visível mas protegido",
+        "Sobrevivente (prisioneiro, explorador, monstro ferido)"
+      ]
+    },
+    personalities: {
+      name: "Personalidades de NPCs",
+      dice: "d10",
+      items: [
+        { range: "1", trait: "Desconfiado", description: "Sempre acha que estão mentindo para ele" },
+        { range: "2", trait: "Alegre", description: "Canta enquanto trabalha, otimista" },
+        { range: "3", trait: "Fanático", description: "Obcecado por sua causa ou divindade" },
+        { range: "4", trait: "Covarde", description: "Foge ao menor sinal de perigo" },
+        { range: "5", trait: "Honrado", description: "Cumpre sua palavra a qualquer custo" },
+        { range: "6", trait: "Ganancioso", description: "Quer ser pago em ouro adiantado" },
+        { range: "7", trait: "Melancólico", description: "Carrega uma perda dolorosa do passado" },
+        { range: "8", trait: "Curioso", description: "Faz perguntas demais sobre tudo" },
+        { range: "9", trait: "Orgulhoso", description: "Nunca aceita ajuda de ninguém" },
+        { range: "10", trait: "Leal", description: "Protegeria amigos até a morte" }
+      ],
+      secrets: [
+        "Tem um filho escondido em lugar distante",
+        "Já foi criminoso famoso no passado",
+        "É espião secreto de uma guilda poderosa",
+        "Tem medo irracional de um lugar específico",
+        "Possui um item mágico roubado",
+        "Está sendo chantageado por alguém"
+      ]
+    },
+    events: {
+      name: "Eventos Aleatórios",
+      dice: "d10",
+      items: [
+        { range: "1", event: "Tempestade repentina", effect: "Inunda estradas, apaga fogueiras" },
+        { range: "2", event: "Viajante misterioso", effect: "Oferece profecia ou presente estranho" },
+        { range: "3", event: "Animal morto no caminho", effect: "Envenenado? Sacrifício ritual?" },
+        { range: "4", event: "Ponte quebrada", effect: "Precisa teste de agilidade ou desvio longo" },
+        { range: "5", event: "Criança entrega bilhete", effect: "Mensagem misteriosa de remetente desconhecido" },
+        { range: "6", event: "Eco mágico", effect: "Replica o que alguém diz, 3 segundos depois" },
+        { range: "7", event: "Memória falsa coletiva", effect: "Todos lembram algo que não aconteceu" },
+        { range: "8", event: "Reconhecimento falso", effect: "PC é confundido com fugitivo procurado" },
+        { range: "9", event: "Item mágico dispara sozinho", effect: "Ativação acidental, efeitos imprevisíveis" },
+        { range: "10", event: "Eclipse temporário", effect: "Sol desaparece por 1d4 minutos" }
+      ]
+    },
+    npcs: {
+      name: "Gerador de NPCs Completos",
+      dice: "Multi-dados",
+      components: [
+        {
+          name: "Profissão",
+          items: [
+            "Ferreiro", "Taverna", "Mercador", "Guarda", "Agricultor", "Pescador", 
+            "Artesão", "Escriba", "Curandeiro", "Bardo", "Soldado", "Caçador",
+            "Ladrão", "Nobre", "Sacerdote", "Mago", "Estalajadeiro", "Mineiro",
+            "Marinheiro", "Assassino"
+          ]
+        },
+        {
+          name: "Aparência",
+          items: [
+            "Muito alto e magro", "Baixo e robusto", "Cicatriz visível no rosto",
+            "Cabelos grisalhos prematuros", "Olhos de cores diferentes", "Tatuagem tribal",
+            "Roupas sempre impecáveis", "Barba longa e trançada", "Mãos calejadas",
+            "Sorriso contagiante", "Postura curvada", "Jóias chamativas"
+          ]
+        },
+        {
+          name: "Motivação",
+          items: [
+            "Proteger a família", "Buscar vingança", "Acumular riqueza", "Encontrar a verdade",
+            "Servir aos deuses", "Conquistar poder", "Salvar alguém querido", "Provar seu valor",
+            "Escapar do passado", "Descobrir suas origens"
+          ]
+        },
+        {
+          name: "Segredo",
+          items: [
+            "Era um criminoso famoso", "Tem poderes mágicos ocultos", "É de família nobre decadente",
+            "Trabalha para uma organização secreta", "Possui um artefato poderoso", "Está fugindo de dívidas",
+            "Tem um irmão gêmeo perdido", "Conhece a localização de um tesouro"
+          ]
+        }
+      ]
+    },
+    
+    weather: {
+      name: "Clima e Ambiente",
+      dice: "d20",
+      items: [
+        { range: "1", result: "Sol radiante", description: "Moral alto, visão clara, calor excessivo" },
+        { range: "2", result: "Chuva leve", description: "Terreno escorregadio, pegadas visíveis" },
+        { range: "3", result: "Tempestade forte", description: "Visibilidade reduzida, barulho alto" },
+        { range: "4", result: "Neblina densa", description: "Visão limitada a 3 metros" },
+        { range: "5", result: "Vento forte", description: "Dificulta voo e projéteis" },
+        { range: "6", result: "Neve pesada", description: "Movimento lento, rastros óbvios" },
+        { range: "7", result: "Granizo", description: "Dano menor, busca por abrigo" },
+        { range: "8", result: "Calor extremo", description: "Desidratação rápida, fadiga" },
+        { range: "9", result: "Frio intenso", description: "Hipotermia, consumo de recursos" },
+        { range: "10", result: "Aurora mágica", description: "Magia instável, fenômenos estranhos" },
+        { range: "11", result: "Eclipse solar", description: "Escuridão temporária, pânico" },
+        { range: "12", result: "Chuva de meteoros", description: "Chuva de fogo, presságio" },
+        { range: "13", result: "Nevasca mágica", description: "Neve colorida, efeitos arcanos" },
+        { range: "14", result: "Vento susurrante", description: "Vozes no ar, mensagens" },
+        { range: "15", result: "Calmaria total", description: "Silêncio absoluto, inquietante" },
+        { range: "16", result: "Chuva ácida", description: "Dano a equipamentos metálicos" },
+        { range: "17", result: "Névoa venenosa", description: "Teste de resistência necessário" },
+        { range: "18", result: "Tempestade psíquica", description: "Afeta mentes, ilusões" },
+        { range: "19", result: "Dia eterno", description: "Sol não se põe por dias" },
+        { range: "20", result: "Noite perpétua", description: "Escuridão por vários dias" }
+      ]
+    }
+  };
+
+  const rollDice = (sides) => Math.floor(Math.random() * sides) + 1;
+
+  const rollOnTable = async (tableKey) => {
+    setIsRolling(true);
+    
+    // Simulate dice rolling animation
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const table = tables[tableKey];
+    let result;
+    
+    if (tableKey === "names") {
+      const roll = rollDice(100);
+      const range = table.items.find(item => {
+        const [min, max] = item.range.split('-').map(n => parseInt(n));
+        return roll >= min && roll <= (max || min);
+      });
+      const randomName = range.examples[Math.floor(Math.random() * range.examples.length)];
+      result = {
+        table: table.name,
+        roll: roll,
+        range: range.range,
+        result: `${range.result}: ${randomName}`,
+        timestamp: new Date()
+      };
+    } else if (tableKey === "encounters") {
+      const roll = rollDice(10);
+      const environment = ["wild", "urban", "dungeon"][Math.floor(Math.random() * 3)];
+      const environmentName = ["Selvagem", "Urbano", "Dungeon"][["wild", "urban", "dungeon"].indexOf(environment)];
+      const encounter = table.items.find(item => item.range === roll.toString());
+      result = {
+        table: `${table.name} (${environmentName})`,
+        roll: roll,
+        result: encounter[environment],
+        timestamp: new Date()
+      };
+    } else {
+      const sides = parseInt(table.dice.replace('d', ''));
+      const roll = rollDice(sides);
+      const item = table.items.find(item => {
+        if (item.range.includes('-')) {
+          const [min, max] = item.range.split('-').map(n => parseInt(n));
+          return roll >= min && roll <= max;
+        }
+        return parseInt(item.range) === roll;
+      });
+      
+      result = {
+        table: table.name,
+        roll: roll,
+        range: item.range,
+        result: item.result,
+        description: item.description || item.features || item.effect,
+        timestamp: new Date()
+      };
+    }
+    
+    setLastResults(prev => [result, ...prev.slice(0, 9)]);
+    setIsRolling(false);
+  };
+
+  const rollCompleteNPC = async () => {
+    setIsRolling(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const npcData = tables.npcs;
+    const results = {};
+    
+    // Roll for each component
+    npcData.components.forEach(component => {
+      const roll = rollDice(component.items.length);
+      results[component.name.toLowerCase()] = component.items[roll - 1];
+    });
+    
+    // Generate name from existing table
+    const nameRoll = rollDice(100);
+    const nameRange = tables.names.items.find(item => {
+      const [min, max] = item.range.split('-').map(n => parseInt(n));
+      return nameRoll >= min && nameRoll <= (max || min);
+    });
+    const randomName = nameRange.examples[Math.floor(Math.random() * nameRange.examples.length)];
+    
+    const npcResult = {
+      table: "NPC Completo",
+      result: "NPC Gerado",
+      npc: {
+        nome: randomName,
+        raca: nameRange.result,
+        profissao: results.profissão,
+        aparencia: results.aparência,
+        motivacao: results.motivação,
+        segredo: results.segredo
+      },
+      timestamp: new Date()
+    };
+    
+    setLastResults(prev => [npcResult, ...prev.slice(0, 9)]);
+    setIsRolling(false);
+  };
+
+  const rollCampaignSeed = async () => {
+    setIsRolling(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Generate a complete campaign concept
+    const themes = ["Guerra civil", "Invasão demoníaca", "Praga mística", "Revolução", "Descoberta antiga"];
+    const tones = ["Épico heroico", "Horror cósmico", "Intriga política", "Aventura clássica", "Comédia"];
+    const twists = ["O vilão é um herói corrompido", "Os PCs são de uma profecia", "O mundo é uma ilusão", 
+                   "Os deuses estão mortos", "A magia está desaparecendo", "Os PCs são o verdadeiro perigo"];
+    
+    const villainOptions = ["Druida Louco", "Bando de Orcs", "Mago Necromante", "Demônio Selado", "Culto Sombrio", 
+                            "Rei Tirano", "Dragão Adormecido", "Golem Descontrolado", "Fera Amaldiçoada", "Assassino Fantasma"];
+    const villain = villainOptions[rollDice(villainOptions.length) - 1];
+    const location1 = tables.locations.items[rollDice(19) - 1].result; // Avoid "combine two" result
+    const location2 = tables.locations.items[rollDice(19) - 1].result;
+    const treasure = tables.treasures.items[rollDice(12) - 1].result;
+    const theme = themes[rollDice(themes.length) - 1];
+    const tone = tones[rollDice(tones.length) - 1];
+    const twist = twists[rollDice(twists.length) - 1];
+    
+    const campaignResult = {
+      table: "Semente de Campanha",
+      result: "Campanha Completa",
+      campaign: {
+        tema: theme,
+        tom: tone,
+        vilao_principal: villain,
+        local_inicial: location1,
+        local_final: location2,
+        tesouro_lendario: treasure,
+        plot_twist: twist
+      },
+      timestamp: new Date()
+    };
+    
+    setLastResults(prev => [campaignResult, ...prev.slice(0, 9)]);
+    setIsRolling(false);
+  };
+
+
+  const rollQuickAdventure = async () => {
+    setIsRolling(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const villains = ["Druida Louco", "Bando de Orcs", "Mago Necromante", "Demônio Selado", "Culto Sombrio", 
+                     "Rei Tirano", "Dragão Adormecido", "Golem Descontrolado", "Fera Amaldiçoada", "Assassino Fantasma"];
+    const objectives = ["Salvar reféns", "Encontrar tesouro", "Destruir artefato", "Obter informação", "Punir traidor",
+                       "Proteger lugar", "Acumular poder", "Fugir de prisão", "Consertar erro mágico", "Abrir portal"];
+    const obstacles = ["Armadilhas", "Monstros", "Enigmas", "Tempo limitado", "Traição", "Magia caótica",
+                      "Clima severo", "Espíritos", "Política", "Doença mágica"];
+    
+    const villain = villains[rollDice(10) - 1];
+    const location = tables.locations.items[rollDice(19) - 1].result; // Evita o "combine dois"
+    const objective = objectives[rollDice(10) - 1];
+    const obstacle = obstacles[rollDice(10) - 1];
+    const treasure = tables.treasures.items[rollDice(12) - 1].result;
+    
+    const adventure = {
+      table: "Aventura Rápida",
+      result: "Aventura Completa Gerada",
+      adventure: {
+        villain,
+        location,
+        objective,
+        obstacle, 
+        treasure
+      },
+      timestamp: new Date()
+    };
+    
+    setLastResults(prev => [adventure, ...prev.slice(0, 9)]);
+    setIsRolling(false);
+  };
+
+  const clearHistory = () => {
+    setLastResults([]);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-text-dark mb-3 tracking-tight">
+            🎲 Gerador Aleatório Universal
+          </h1>
+          <p className="text-lg text-medieval-brown mb-4">
+            Sistema completo de geração para RPGs - D&D, Pathfinder, OSR e mais!
+          </p>
+          <div className="flex justify-center gap-2 flex-wrap">
+            <Badge className="bg-emerald-100 text-emerald-800">D&D 5.0</Badge>
+            <Badge className="bg-amber-100 text-amber-800">D&D 3.5</Badge>
+            <Badge className="bg-purple-100 text-purple-800">Pathfinder</Badge>
+            <Badge className="bg-blue-100 text-blue-800">OSR</Badge>
+            <Badge className="bg-red-100 text-red-800">Universal</Badge>
+          </div>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Main Generator */}
+          <div className="lg:col-span-3">
+            <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+              <TabsList className="grid grid-cols-4 lg:grid-cols-8 mb-6 bg-gradient-to-r from-light-gold to-parchment">
+                {categories.map(category => {
+                  const Icon = category.icon;
+                  return (
+                    <TabsTrigger 
+                      key={category.id}
+                      value={category.id}
+                      className="data-[state=active]:bg-medieval-gold data-[state=active]:text-text-dark text-sm p-2"
+                    >
+                      <Icon className="w-4 h-4 mr-1" />
+                      <span className="hidden sm:inline">{category.name}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+
+              {Object.keys(tables).map(tableKey => (
+                tableKey !== "npcs" && tableKey !== "weather" && ( // Render regular tables
+                  <TabsContent key={tableKey} value={tableKey}>
+                    <RandomTableCard
+                      table={tables[tableKey]}
+                      tableKey={tableKey}
+                      onRoll={() => rollOnTable(tableKey)}
+                      isRolling={isRolling}
+                    />
+                  </TabsContent>
+                )
+              ))}
+
+              <TabsContent value="npcs">
+                <NPCGeneratorCard
+                  table={tables.npcs}
+                  onRoll={rollCompleteNPC}
+                  isRolling={isRolling}
+                />
+              </TabsContent>
+
+              <TabsContent value="weather">
+                <RandomTableCard
+                  table={tables.weather}
+                  tableKey="weather"
+                  onRoll={() => rollOnTable("weather")}
+                  isRolling={isRolling}
+                />
+              </TabsContent>
+
+              <TabsContent value="adventures">
+                <QuickAdventureGenerator
+                  onRoll={rollQuickAdventure}
+                  isRolling={isRolling}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Results Sidebar */}
+          <div className="lg:col-span-1">
+            <ResultsHistory
+              results={lastResults}
+              onClear={clearHistory}
+              onCopy={copyToClipboard}
+            />
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8"
+        >
+          <Card className="medieval-card bg-gradient-to-r from-medieval-gold to-light-gold">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-text-dark mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Ações Rápidas
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Button 
+                  onClick={() => rollOnTable("names")}
+                  className="medieval-button rounded-lg"
+                  disabled={isRolling}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Nome Rápido
+                </Button>
+                <Button 
+                  onClick={() => rollOnTable("locations")}
+                  className="medieval-button rounded-lg"
+                  disabled={isRolling}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Local Rápido
+                </Button>
+                <Button 
+                  onClick={() => rollOnTable("treasures")}
+                  className="medieval-button rounded-lg"
+                  disabled={isRolling}
+                >
+                  <Gem className="w-4 h-4 mr-2" />
+                  Tesouro Rápido
+                </Button>
+                <Button 
+                  onClick={rollQuickAdventure}
+                  className="medieval-button rounded-lg"
+                  disabled={isRolling}
+                >
+                  <Scroll className="w-4 h-4 mr-2" />
+                  Aventura Completa
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Advanced Generators Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8"
+        >
+          <Card className="medieval-card bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Crown className="w-5 h-5" />
+                Geradores Avançados
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  onClick={rollCompleteNPC}
+                  className="bg-white text-purple-600 hover:bg-purple-50 rounded-lg p-4 h-auto flex flex-col gap-2"
+                  disabled={isRolling}
+                >
+                  <User className="w-6 h-6" />
+                  <span className="font-bold">NPC Completo</span>
+                  <span className="text-sm opacity-80">Nome + Profissão + Segredo</span>
+                </Button>
+                
+                <Button 
+                  onClick={rollCampaignSeed}
+                  className="bg-white text-purple-600 hover:bg-purple-50 rounded-lg p-4 h-auto flex flex-col gap-2"
+                  disabled={isRolling}
+                >
+                  <Crown className="w-6 h-6" />
+                  <span className="font-bold">Semente de Campanha</span>
+                  <span className="text-sm opacity-80">Tema + Locais + Plot Twist</span>
+                </Button>
+                
+                <Button 
+                  onClick={async () => {
+                    setIsRolling(true); // Start rolling state for all
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await rollOnTable("weather");
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await rollOnTable("events");
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await rollOnTable("encounters");
+                    setIsRolling(false); // End rolling state after all are done
+                  }}
+                  className="bg-white text-purple-600 hover:bg-purple-50 rounded-lg p-4 h-auto flex flex-col gap-2"
+                  disabled={isRolling}
+                >
+                  <Zap className="w-6 h-6" />
+                  <span className="font-bold">Sessão Rápida</span>
+                  <span className="text-sm opacity-80">Clima + Evento + Encontro</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Usage Tips */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-6"
+        >
+          <Card className="border-amber-300 bg-amber-50">
+            <CardContent className="p-6">
+              <h4 className="font-bold text-amber-800 mb-3">💡 Como Usar o Gerador</h4>
+              <div className="grid md:grid-cols-3 gap-4 text-sm text-amber-700">
+                <div>
+                  <h5 className="font-semibold mb-2">Para Mestres:</h5>
+                  <ul className="space-y-1">
+                    <li>• Use antes da sessão para preparar</li>
+                    <li>• Role durante o jogo para improvisar</li>
+                    <li>• Combine tabelas para histórias completas</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="font-semibold mb-2">Para Jogadores:</h5>
+                  <ul className="space-y-1">
+                    <li>• Gere nomes para personagens</li>
+                    <li>• Crie histórico com personalidade</li>
+                    <li>• Invente NPCs e aliados</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="font-semibold mb-2">Criação de Mundos:</h5>
+                  <ul className="space-y-1">
+                    <li>• Gere região: 3 locais + 2 tesouros</li>
+                    <li>• Adicione 1 ruína + 1 evento</li>
+                    <li>• Pronto: área de aventura!</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

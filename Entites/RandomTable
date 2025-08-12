@@ -1,0 +1,67 @@
+{
+  "name": "RandomTable",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome da tabela"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "names",
+        "locations",
+        "treasures",
+        "encounters",
+        "ruins",
+        "personalities",
+        "events",
+        "adventures"
+      ],
+      "description": "Categoria da tabela"
+    },
+    "system": {
+      "type": "string",
+      "enum": [
+        "universal",
+        "dnd35",
+        "dnd5e",
+        "pathfinder",
+        "osr"
+      ],
+      "default": "universal",
+      "description": "Sistema de RPG compatível"
+    },
+    "dice_type": {
+      "type": "string",
+      "description": "Tipo de dado (d6, d10, d20, d100, etc.)"
+    },
+    "items": {
+      "type": "array",
+      "description": "Itens da tabela",
+      "items": {
+        "type": "object",
+        "properties": {
+          "roll_range": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "usage_notes": {
+      "type": "string",
+      "description": "Notas de uso da tabela"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "items"
+  ]
+}

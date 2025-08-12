@@ -1,0 +1,327 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Shield, Heart, Zap, Target, Swords, Calculator } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function CombatForm({ character, onUpdate }) {
+  const getModifier = (score) => {
+    return Math.floor((score - 10) / 2);
+  };
+
+  const calculateAC = () => {
+    const dexMod = getModifier(character.dexterity || 10);
+    return 10 + dexMod; // AC base + modificador de destreza
+  };
+
+  const calculateInitiative = () => {
+    return getModifier(character.dexterity || 10);
+  };
+
+  const calculateHP = () => {
+    const conMod = getModifier(character.constitution || 10);
+    const level = character.level || 1;
+    
+    // HP base por classe (simplificado)
+    const baseHP = {
+      "Barbaro": 12,
+      "Guerreiro": 10,
+      "Paladino": 10,
+      "Ranger": 10,
+      "Bardo": 8,
+      "Clérigo": 8,
+      "Druida": 8,
+      "Ladino": 8,
+      "Bruxo": 8,
+      "Feiticeiro": 6,
+      "Mago": 6
+    };
+
+    const classHP = baseHP[character.character_class] || 8;
+    return classHP + conMod + ((level - 1) * (Math.floor(classHP / 2) + 1 + conMod));
+  };
+
+  const autoCalculateStats = () => {
+    const updates = {
+      armor_class: calculateAC(),
+      initiative: calculateInitiative(),
+      hit_points_max: calculateHP()
+    };
+    
+    // Se HP atual estiver em 0 ou não definido, definir como HP máximo
+    if (!character.hit_points_current || character.hit_points_current === 0) {
+      updates.hit_points_current = updates.hit_points_max;
+    }
+
+    // Calcular bônus de proficiência para D&D 5.0
+    if (character.edition === "dnd5e") {
+      updates.proficiency_bonus = Math.ceil((character.level || 1) / 4) + 1;
+    }
+
+    // Calcular BAB para D&D 3.5
+    if (character.edition === "dnd35") {
+      const level = character.level || 1;
+      // Simplificado: BAB completo para guerreiros, 3/4 para outros
+      const isFullBAB = ["Guerreiro", "Paladino", "Ranger", "Barbaro"].includes(character.character_class);
+      updates.base_attack_bonus = isFullBAB ? level : Math.floor(level * 0.75);
+    }
+
+    onUpdate(updates);
+  };
+
+  const handleInputChange = (field, value) => {
+    const numValue = parseInt(value) || 0;
+    onUpdate({ [field]: numValue });
+  };
+
+  const combatStats = [
+    {
+      key: "armor_class",
+      name: "Classe de Armadura",
+      icon: Shield,
+      description: "Dificuldade para ser atingido",
+      color: "blue"
+    },
+    {
+      key: "hit_points_max",
+      name: "Pontos de Vida Máximos",
+      icon: Heart,
+      description: "Sua capacidade total de dano",
+      color: "red"
+    },
+    {
+      key: "hit_points_current",
+      name: "Pontos de Vida Atuais",
+      icon: Heart,
+      description: "Seus HP atuais",
+      color: "green"
+    },
+    {
+      key: "initiative",
+      name: "Iniciativa",
+      icon: Zap,
+      description: "Bônus na ordem de combate",
+      color: "yellow"
+    },
+    {
+      key: "speed",
+      name: "Velocidade",
+      icon: Target,
+      description: "Movimento em pés por turno",
+      color: "purple"
+    }
+  ];
+
+  const getColorClasses = (color) => {
+    const colors = {
+      blue: "border-blue-300 bg-blue-50 text-blue-800",
+      red: "border-red-300 bg-red-50 text-red-800",
+      green: "border-green-300 bg-green-50 text-green-800",
+      yellow: "border-yellow-300 bg-yellow-50 text-yellow-800",
+      purple: "border-purple-300 bg-purple-50 text-purple-800"
+    };
+    return colors[color] || colors.blue;
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      {/* Header with Auto-Calculate */}
+      <Card className="border-medieval-gold">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2 text-lg text-text-dark">
+              <Swords className="w-5 h-5 text-medieval-gold" />
+              Estatísticas de Combate
+            </CardTitle>
+            <Button 
+              onClick={autoCalculateStats}
+              className="medieval-button rounded-lg px-4 py-2"
+            >
+              <Calculator className="w-4 h-4 mr-2" />
+              Calcular Automaticamente
+            </Button>
+          </div>
+          <p className="text-sm text-medieval-brown">
+            Configure as estatísticas de combate do seu personagem
+          </p>
+        </CardHeader>
+      </Card>
+
+      {/* Combat Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {combatStats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={stat.key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -2 }}
+            >
+              <Card className={`medieval-card h-full hover:shadow-lg transition-all duration-300 ${getColorClasses(stat.color)}`}>
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-3 bg-white bg-opacity-50 rounded-full flex items-center justify-center">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-bold text-sm mb-1">
+                      {stat.name}
+                    </h3>
+                    <p className="text-xs mb-4 opacity-75 leading-relaxed">
+                      {stat.description}
+                    </p>
+                    
+                    <Input
+                      type="number"
+                      min="0"
+                      value={character[stat.key] || 0}
+                      onChange={(e) => handleInputChange(stat.key, e.target.value)}
+                      className="text-center text-xl font-bold bg-white border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Temporary HP */}
+      <Card className="border-medieval-gold">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-blue-500" />
+              <Label className="text-medieval-brown font-medium">Pontos de Vida Temporários</Label>
+            </div>
+            <div className="w-32">
+              <Input
+                type="number"
+                min="0"
+                value={character.hit_points_temp || 0}
+                onChange={(e) => handleInputChange("hit_points_temp", e.target.value)}
+                className="text-center border-medieval-gold focus:ring-medieval-gold"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-medieval-brown mt-1 opacity-75">
+            HP temporários não se acumulam com cura normal
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Edition Specific Fields */}
+      {character.edition === "dnd5e" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-emerald-300 bg-emerald-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-emerald-800">
+                <Shield className="w-5 h-5 text-emerald-600" />
+                D&D 5.0 - Bônus de Proficiência
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-emerald-700 font-medium">Bônus de Proficiência</Label>
+                  <p className="text-sm text-emerald-600">
+                    Calculado automaticamente baseado no nível
+                  </p>
+                </div>
+                <div className="w-20">
+                  <Input
+                    type="number"
+                    min="2"
+                    max="6"
+                    value={character.proficiency_bonus || 2}
+                    onChange={(e) => handleInputChange("proficiency_bonus", e.target.value)}
+                    className="text-center text-lg font-bold border-emerald-300 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {character.edition === "dnd35" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-amber-300 bg-amber-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-amber-800">
+                <Swords className="w-5 h-5 text-amber-600" />
+                D&D 3.5 - Bônus de Ataque Base
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-amber-700 font-medium">Bônus de Ataque Base (BAB)</Label>
+                  <p className="text-sm text-amber-600">
+                    Varia conforme a classe e nível
+                  </p>
+                </div>
+                <div className="w-20">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={character.base_attack_bonus || 0}
+                    onChange={(e) => handleInputChange("base_attack_bonus", e.target.value)}
+                    className="text-center text-lg font-bold border-amber-300 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Combat Summary */}
+      <Card className="border-medieval-gold bg-gradient-to-r from-light-gold to-parchment">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-text-dark mb-3 flex items-center gap-2">
+            <Target className="w-4 h-4 text-medieval-gold" />
+            Resumo de Combate
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">CA</div>
+              <div className="text-xl font-bold text-text-dark">{character.armor_class || 10}</div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">HP</div>
+              <div className="text-xl font-bold text-text-dark">
+                {character.hit_points_current || 0}/{character.hit_points_max || 8}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Iniciativa</div>
+              <div className="text-xl font-bold text-text-dark">
+                {character.initiative >= 0 ? '+' : ''}{character.initiative || 0}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+              <div className="font-medium text-medieval-brown">Velocidade</div>
+              <div className="text-xl font-bold text-text-dark">{character.speed || 30} pés</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

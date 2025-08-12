@@ -1,0 +1,74 @@
+import React from 'react';
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Plus, Search, Scroll, Dice6 } from "lucide-react";
+
+export default function EmptyState({ searchTerm, hasCharacters }) {
+  if (searchTerm && hasCharacters) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-16"
+      >
+        <Card className="medieval-card max-w-md mx-auto">
+          <CardContent className="p-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-medieval-gold to-light-gold rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-medieval-brown" />
+            </div>
+            <h3 className="text-xl font-bold text-text-dark mb-2">
+              Nenhum resultado encontrado
+            </h3>
+            <p className="text-medieval-brown mb-4">
+              Não encontramos personagens com o termo "{searchTerm}". 
+              Tente buscar por outro nome, raça ou classe.
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="text-center py-16"
+    >
+      <Card className="medieval-card max-w-lg mx-auto">
+        <CardContent className="p-12">
+          <div className="relative mb-6">
+            <div className="w-24 h-24 mx-auto bg-gradient-to-br from-medieval-gold to-light-gold rounded-full flex items-center justify-center shadow-lg">
+              <Scroll className="w-12 h-12 text-medieval-brown" />
+            </div>
+            <div className="absolute -top-2 -right-2 w-8 h-8 bg-medieval-brown rounded-full flex items-center justify-center">
+              <Dice6 className="w-4 h-4 text-parchment" />
+            </div>
+          </div>
+          
+          <h3 className="text-2xl font-bold text-text-dark mb-3">
+            Sua aventura começa aqui!
+          </h3>
+          <p className="text-medieval-brown mb-6 text-lg leading-relaxed">
+            Você ainda não possui nenhum personagem. Crie sua primeira ficha e 
+            comece a explorar mundos fantásticos!
+          </p>
+          
+          <Link to={createPageUrl("CreateCharacter")}>
+            <Button className="medieval-button rounded-xl px-8 py-3 text-lg shadow-lg">
+              <Plus className="w-5 h-5 mr-2" />
+              Criar Primeiro Personagem
+            </Button>
+          </Link>
+          
+          <div className="mt-8 text-sm text-medieval-brown opacity-75">
+            <p>💡 Dica: Você pode criar personagens para D&D 3.5 e D&D 5.0</p>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
